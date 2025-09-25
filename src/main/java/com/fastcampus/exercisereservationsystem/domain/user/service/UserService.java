@@ -23,7 +23,7 @@ public class UserService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     //반복 메서드
-    private UserEntity getUserEntity(Long userId) {
+    public UserEntity getUserEntity(Long userId) {
         return userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("유저가 없습니다."));
     }
 

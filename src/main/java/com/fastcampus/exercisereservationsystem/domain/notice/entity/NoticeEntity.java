@@ -6,8 +6,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-
 @NoArgsConstructor
 @Getter
 @Table(name = "notices")
@@ -30,5 +28,10 @@ public class NoticeEntity extends BaseEntity {
         this.title = title;
         this.description = description;
         this.user = user;
+    }
+
+    public void updateNotice(String title, String description) {
+        this.title = title;
+        this.description = description;
     }
 }
