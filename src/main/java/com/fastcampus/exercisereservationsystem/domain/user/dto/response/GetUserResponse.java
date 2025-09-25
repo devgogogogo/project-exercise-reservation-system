@@ -4,18 +4,20 @@ import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
 
 import java.time.LocalDate;
 
-public record CreateUserResponse(
+public record GetUserResponse(
+        Long id,
         String name,
         String username,
         LocalDate startedAt,
         LocalDate endedAt
 ) {
-    public static CreateUserResponse from(UserEntity userEntity) {
-        return new CreateUserResponse(
-                userEntity.getName(),
-                userEntity.getUsername(),
-                userEntity.getStartAt(),
-                userEntity.getEndAt()
+    public static GetUserResponse from(UserEntity user) {
+        return new GetUserResponse(
+                user.getId(),
+                user.getName(),
+                user.getUsername(),
+                user.getStartAt(),
+                user.getEndAt()
         );
     }
 }

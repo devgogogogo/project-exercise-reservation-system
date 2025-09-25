@@ -33,21 +33,26 @@ public class UserEntity {
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     @Column(nullable = false)
-    private LocalDate startedAt; //회원등록 시작일
+    private LocalDate startAt; //회원등록 시작일
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     @Column(nullable = false)
-    private LocalDate endedAt; //회원등록 종료일
+    private LocalDate endAt; //회원등록 종료일
 
 
-    public static UserEntity of(String name, String username, String password, LocalDate startedAt, LocalDate endedAt) {
+    public static UserEntity of(String name, String username, String password, LocalDate startAt, LocalDate endAt) {
         UserEntity user = new UserEntity();
         user.name = name;
         user.username = username;
         user.password = password;
         user.authority = Authority.USER;
-        user.startedAt = startedAt;
-        user.endedAt = endedAt;
+        user.startAt = startAt;
+        user.endAt = endAt;
         return user;
+    }
+
+    public void updatePeriod(LocalDate newStartAt, LocalDate newEndAt) {
+        this.startAt = newStartAt;
+        this.endAt = newEndAt;
     }
 }
