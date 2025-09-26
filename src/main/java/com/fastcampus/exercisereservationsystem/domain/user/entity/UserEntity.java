@@ -1,5 +1,6 @@
 package com.fastcampus.exercisereservationsystem.domain.user.entity;
 
+import com.fastcampus.exercisereservationsystem.common.BaseEntity;
 import com.fastcampus.exercisereservationsystem.common.enums.Authority;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
@@ -12,7 +13,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Table(name = "users")
 @Entity
-public class UserEntity {
+public class UserEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
