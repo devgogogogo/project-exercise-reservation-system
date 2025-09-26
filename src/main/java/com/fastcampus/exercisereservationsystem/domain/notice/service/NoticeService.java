@@ -42,17 +42,16 @@ public class NoticeService {
 
     //공지사항 단건 조회
     public GetNoticeResponse getNotice(Long noticeId) {
-        NoticeEntity noticeEntity = noticeRepository.findById(noticeId).orElseThrow(() -> new EntityNotFoundException("공지사항이 없습니다."));
+        NoticeEntity noticeEntity = noticeRepository.findByIdWithUser(noticeId).orElseThrow(() -> new EntityNotFoundException("공지사항이 없습니다."));
         return new GetNoticeResponse(noticeEntity.getId(),noticeEntity.getUser().getUsername(), noticeEntity.getTitle(), noticeEntity.getDescription());
     }
 
-
     //공지사항 수정
     public UpdateNoticeResponse updateNotice(UpdateNoticeRequest request, Long noticeId) {
-        NoticeEntity noticeEntity = noticeRepository.findById(noticeId).orElseThrow(() -> new EntityNotFoundException("공지사항이 없습니다."));
+        NoticeEntity noticeEntity = noticeRepository.findByIdWithUser(noticeId).orElseThrow(() -> new EntityNotFoundException("공지사항이 없습니다."));
         noticeEntity.updateNotice(request.title(), request.description());
         noticeRepository.save(noticeEntity);
-        return UpdateNoticeResponse.from(noticeEntity);
+        return UpdateNoticeResponse.from(noticeEntity); //DTO 안에 유저를 가지고 오는게 있어서 LazyInitializationException 예외가 터짐
     }
 
 
