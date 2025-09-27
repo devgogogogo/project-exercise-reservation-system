@@ -1,11 +1,13 @@
 package com.fastcampus.exercisereservationsystem.domain.classSchedule.entity;
 
+import com.fastcampus.exercisereservationsystem.domain.classSchedule.enums.ScheduleStatus;
 import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Getter
 @NoArgsConstructor
@@ -17,29 +19,43 @@ public class ClassScheduleEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
+    private String className;
+
+    @Column(nullable = false)
+    private LocalTime startTime; //시간시간
+
+    @Column(nullable = false)
+    private LocalTime endTime; //종료시간
+
+    @Column(nullable = false)
+    private LocalDate date; // 그날
+
+    @Column(nullable = false)
+    private Integer capacity; //예약가능한 인원
+
+    @Enumerated(EnumType.STRING)
+    private ScheduleStatus scheduleStatus;
+
     @JoinColumn(name = "user_id")
     @ManyToOne(fetch = FetchType.LAZY)
     private UserEntity user; //개설하는건 ADMIN 관리자가 개설하는거임
 
-    @Column(nullable = false, columnDefinition = "")
-    private String className;
-
-    private Long count;
-
-    private Long maxCount;
-
-    @Column(nullable = false)
-    private LocalDate startAt;
-
-    @Column(nullable = false)
-    private LocalDate endAt;
-
-    public ClassScheduleEntity(UserEntity user, String className, Long count, Long maxCount, LocalDate startAt, LocalDate endAt) {
-        this.user = user;
+    public ClassScheduleEntity(String className, LocalTime startTime, LocalTime endTime, LocalDate date, Integer capacity, UserEntity user) {
         this.className = className;
-        this.count = 0L;
-        this.maxCount = maxCount;
-        this.startAt = startAt;
-        this.endAt = endAt;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.date = date;
+        this.capacity = capacity;
+        this.scheduleStatus = ScheduleStatus.OPEN;
+        this.user = user;
+    }
+
+    public void updateClassSchedule(String className, LocalTime startTime, LocalTime endTime, LocalDate date, Integer capacity) {
+        this.className = className;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.date = date;
+        this.capacity = capacity;
     }
 }

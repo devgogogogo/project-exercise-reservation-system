@@ -23,8 +23,9 @@ public class ReservationEntity {
     @JoinColumn(name = "class_schedule_id", nullable = false)
     private ClassScheduleEntity classSchedule;
 
-
-
-
+    public ReservationEntity(UserEntity user, ClassScheduleEntity classSchedule) {
+        this.user = user;
+        this.classSchedule = classSchedule;
+    }
 
 }
