@@ -1,6 +1,6 @@
 package com.fastcampus.exercisereservationsystem.common.enums;
 
-public enum Authority {
+public enum Role {
 
     ADMIN, USER
 }

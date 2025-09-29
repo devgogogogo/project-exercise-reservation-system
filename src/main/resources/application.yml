@@ -15,3 +15,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
+
+#  최소 32바이트(256비트) 이상의 랜덤 바이트를 Base64로 인코딩해 넣어라(아래는 샘플)
+jwt:
+  secret-key: Y3Jhc2gtc2VydmljZS1zdXBlci1zZXZyZXQta2V5203874yosdhgf

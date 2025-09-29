@@ -15,7 +15,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api//user/{userId}/class-schedules")
+@RequestMapping("/api/user/{userId}/classSchedules")
 @RequiredArgsConstructor
 public class ClassScheduleController {
 

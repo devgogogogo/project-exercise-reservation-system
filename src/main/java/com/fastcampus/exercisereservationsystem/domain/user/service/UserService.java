@@ -10,8 +10,10 @@ import com.fastcampus.exercisereservationsystem.domain.user.repository.UserRepos
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -27,8 +29,13 @@ public class UserService {
         return userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("유저가 없습니다."));
     }
 
-    //회원 생성
+    //회원 가입
     public CreateUserResponse createUser(@Valid CreateUserRequest request) {
+        boolean isUser = userRepository.existsByUsername(request.username());
+        if (isUser) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 username이 존재합니다.");
+        }
+
 
         UserEntity userEntity = UserEntity.of(
                 request.name(),
