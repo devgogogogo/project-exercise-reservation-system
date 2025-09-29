@@ -1,6 +1,6 @@
 package com.fastcampus.exercisereservationsystem.domain.user.entity;
 
-import com.fastcampus.exercisereservationsystem.common.enums.Role;
+import com.fastcampus.exercisereservationsystem.domain.user.enums.Role;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Getter;

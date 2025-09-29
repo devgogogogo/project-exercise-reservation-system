@@ -1,11 +1,13 @@
 package com.fastcampus.exercisereservationsystem.domain.user.service;
 
+import com.fastcampus.exercisereservationsystem.common.exception.BizException;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.request.CreateUserRequest;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.request.UpdateUserRequest;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.response.CreateUserResponse;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.response.GetUserResponse;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.response.UpdateUserResponse;
 import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
+import com.fastcampus.exercisereservationsystem.domain.user.exception.UserErrorCode;
 import com.fastcampus.exercisereservationsystem.domain.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -26,14 +28,14 @@ public class UserService {
 
     //반복 메서드
     public UserEntity getUserEntity(Long userId) {
-        return userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("유저가 없습니다."));
+        return userRepository.findById(userId).orElseThrow(() -> new BizException(UserErrorCode.REVIEW_NOT_FOUND));
     }
 
     //회원 가입
     public CreateUserResponse createUser(@Valid CreateUserRequest request) {
         boolean isUser = userRepository.existsByUsername(request.username());
         if (isUser) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 username이 존재합니다.");
+            throw new BizException(UserErrorCode.REVIEW_ALREADY_EXISTED);
         }
 
 
@@ -45,7 +47,7 @@ public class UserService {
                 request.endAt());
 
         UserEntity savedUserEntity = userRepository.save(userEntity);
-       return CreateUserResponse.from(savedUserEntity);
+        return CreateUserResponse.from(savedUserEntity);
     }
 
     //회원 전체 조회
@@ -63,7 +65,7 @@ public class UserService {
 
     //회원 기간 수정
     public UpdateUserResponse updateUserPeriod(String username, UpdateUserRequest request) {
-        UserEntity userEntity = userRepository.findByUsername(username).orElseThrow(() -> new EntityNotFoundException("유저가 없습니다."));
+        UserEntity userEntity = userRepository.findByUsername(username).orElseThrow(() -> new BizException(UserErrorCode.REVIEW_NOT_FOUND));
 
         userEntity.updatePeriod(request.startAt(), request.endAt());
         userRepository.save(userEntity);
@@ -72,7 +74,7 @@ public class UserService {
 
     //회원 삭제 (추후에 소프르 delete로 바꿀예정)
     public void deleteUser(String username) {
-        UserEntity userEntity = userRepository.findByUsername(username).orElseThrow(() -> new EntityNotFoundException("유저가 없습니다."));
+        UserEntity userEntity = userRepository.findByUsername(username).orElseThrow(() -> new BizException(UserErrorCode.REVIEW_NOT_FOUND));
         userRepository.delete(userEntity);
     }
 }
