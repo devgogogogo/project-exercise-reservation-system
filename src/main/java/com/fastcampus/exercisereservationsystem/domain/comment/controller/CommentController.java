@@ -20,6 +20,7 @@ public class CommentController {
     private final CommentService commentService;
 
 
+    //댓글 생성
     @PostMapping
     public ResponseEntity<CreateCommentResponse> createComment(
             @PathVariable Long noticeId,
@@ -28,12 +29,14 @@ public class CommentController {
         return ResponseEntity.ok().body(response);
     }
 
+    //전체 댓글
     @GetMapping
     public ResponseEntity<List<GetCommentListResponse>> getCommentList(@PathVariable Long noticeId) {
         List<GetCommentListResponse> list = commentService.getCommentList(noticeId);
         return ResponseEntity.ok().body(list);
     }
 
+    //댓글 수정
     @PutMapping("/{commentId}")
     public ResponseEntity<UpdateCommentResponse> updateComment(
             @PathVariable Long noticeId,
@@ -43,6 +46,7 @@ public class CommentController {
         return ResponseEntity.ok().body(response);
     }
 
+    //댓글 삭제
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(
             @PathVariable Long noticeId,

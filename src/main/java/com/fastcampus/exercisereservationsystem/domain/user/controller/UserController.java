@@ -1,11 +1,14 @@
 package com.fastcampus.exercisereservationsystem.domain.user.controller;
 
 import com.fastcampus.exercisereservationsystem.domain.user.dto.request.CreateUserRequest;
+import com.fastcampus.exercisereservationsystem.domain.user.dto.request.LoginUserRequest;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.request.UpdateUserRequest;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.response.CreateUserResponse;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.response.GetUserResponse;
+import com.fastcampus.exercisereservationsystem.domain.user.dto.response.LoginUserResponse;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.response.UpdateUserResponse;
 import com.fastcampus.exercisereservationsystem.domain.user.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,8 +24,15 @@ public class UserController {
 
     //회원생성
     @PostMapping
-    public ResponseEntity<CreateUserResponse> createUser(@RequestBody CreateUserRequest request) {
-        CreateUserResponse response = userService.createUser(request);
+    public ResponseEntity<CreateUserResponse> signUp(@RequestBody CreateUserRequest request) {
+        CreateUserResponse response = userService.signUp(request);
+        return ResponseEntity.ok().body(response);
+    }
+
+    //로그인
+    @PostMapping("/login")
+    public ResponseEntity<LoginUserResponse> login(@Valid @RequestBody LoginUserRequest request) {
+        LoginUserResponse response = userService.login(request);
         return ResponseEntity.ok().body(response);
     }
 

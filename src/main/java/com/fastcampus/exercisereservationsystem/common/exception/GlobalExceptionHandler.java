@@ -12,7 +12,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleClientErrorException(BizException e) {
 
         return ResponseEntity.status(e.getErrorCode().getStatus())
-                .body(new ErrorResponse(e.getErrorCode().getStatus(),e.getErrorCode().getCode(),e.getMessage()));
+                .body(new ErrorResponse(e.getErrorCode().getStatus(),e.getMessage()));
 
     }
 }
