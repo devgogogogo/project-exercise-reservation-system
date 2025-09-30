@@ -7,8 +7,8 @@ import java.time.LocalTime;
 
 public record UpdateClassScheduleResponse(
         String classname,
-        LocalTime startAt,
-        LocalTime endAt,
+        LocalTime startTime,
+        LocalTime endTime,
         LocalDate date,
         Integer capacity
 ) {

@@ -43,10 +43,8 @@ public class JwtService {
         return claims.getSubject();
     }
 
-
-    //토큰을 파싱해서 Claims 반환(서명/만료 검증 포함)
-
-    //토큰이 유요한지(서명/먄료 등) 간단 검증
+    // ✅ [1차 검증] 토큰 자체가 유효한지(서명/만료/형식) 검사
+    //    지금 네 구현 그대로 OK. 오탈자만 고침(유요한지→유효한지, 먄료→만료)
     public boolean isTokenValid(String token) {
         try {
             //유효하지 않으면 JwtException 발생
@@ -56,10 +54,8 @@ public class JwtService {
                     .parseClaimsJws(token)  //여기서 서명/만료를 함께 체크
                     .getBody();
             return true;
-        }catch (JwtException | IllegalArgumentException e) {}
-        return false; //서명 불일치, 만료, 형식 오류 등
-
+        } catch (JwtException | IllegalArgumentException e) {
+            return false; //서명 불일치, 만료, 형식 오류 등
+        }
     }
-
-
 }

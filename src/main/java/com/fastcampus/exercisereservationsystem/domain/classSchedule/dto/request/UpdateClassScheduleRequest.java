@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public record UpdateClassScheduleRequest(
-        String className,
+        String classname,
         LocalTime startTime,
         LocalTime endTime,
         LocalDate date,

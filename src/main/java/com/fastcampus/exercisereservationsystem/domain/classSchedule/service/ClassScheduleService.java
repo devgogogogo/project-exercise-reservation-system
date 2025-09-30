@@ -41,7 +41,7 @@ public class ClassScheduleService {
 
     public UpdateClassScheduleResponse updateClassSchedule(Long userId, UpdateClassScheduleRequest request,Long classSchedulesId) {
         ClassScheduleEntity classScheduleEntity = classScheduleRepository.findById(classSchedulesId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다."));
-        classScheduleEntity.updateClassSchedule(request.className(), request.startTime(),request.endTime(),request.date(),request.capacity());
+        classScheduleEntity.updateClassSchedule(request.classname(), request.startTime(),request.endTime(),request.date(),request.capacity());
         classScheduleRepository.save(classScheduleEntity);
         return UpdateClassScheduleResponse.from(classScheduleEntity);
     }

@@ -12,39 +12,44 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+// JWT 인증 담당
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final CustomUserDetailsService customUserDetailsService;
+    private static final String BEARER_PREFIX = "Bearer ";
+
+    private final UserDetailsService userDetailsService;
     private final JwtService jwtService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        String BEARER = "Bearer ";
         String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
-        SecurityContext securityContext = SecurityContextHolder.getContext();
 
-        if (!ObjectUtils.isEmpty(authorization)
-                && authorization.startsWith(BEARER)
-                && securityContext.getAuthentication() == null) {
-            String accessToken = authorization.substring(BEARER.length());
-            String username = jwtService.extractUsername(accessToken);
-            UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+        if (authorization != null
+                && authorization.startsWith(BEARER_PREFIX)
+                && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            String accessToken = authorization.substring(BEARER_PREFIX.length());
 
-            securityContext.setAuthentication(authenticationToken);
-            SecurityContextHolder.setContext(securityContext);
+            // 주석: 토큰 유효성 먼저 검사 (서명/만료 확인)
+            if (jwtService.isTokenValid(accessToken)) {
+                String username = jwtService.extractUsername(accessToken);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContext context = SecurityContextHolder.createEmptyContext();
+                context.setAuthentication(authenticationToken);
+                SecurityContextHolder.setContext(context);
+            }
         }
         filterChain.doFilter(request, response);
     }

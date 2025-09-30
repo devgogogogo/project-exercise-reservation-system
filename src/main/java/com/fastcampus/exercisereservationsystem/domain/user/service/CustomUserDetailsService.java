@@ -14,20 +14,11 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
+    //loadUserByUsername은 Spring Security가 로그인 과정에서 자동으로 호출하는 메서드야.
+    //사용자가 로그인 폼에서 username을 입력하면 그 값이 여기로 넘어오고, DB에서 조회해서 UserDetails를 반환하는 거지.
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        String u;
-        if (username == null) {
-            u = "";                 // 널이면 빈 문자열로 대체
-        } else {
-            u = username.trim();    // 널이 아니면 양끝 공백 제거
-        }
-        if (u.isEmpty()) throw new UsernameNotFoundException("사용자를 찾을 수 없습니다.");
-
-        UserEntity user = userRepository.findByUsername(u)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
-
-        // 필요 시 계정 상태 검사 (아래 3번 참고)
-        return user; // UserEntity가 UserDetails면 그대로 반환
+        UserEntity userEntity = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
+        return userEntity;
     }
 }
