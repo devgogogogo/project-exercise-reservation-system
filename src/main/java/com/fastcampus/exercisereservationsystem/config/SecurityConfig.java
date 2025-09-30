@@ -72,13 +72,13 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        //todo : 이부분은 다시 수정해야할 부분, 이런저런 기능이 있다는걸 기억하기 위해 써 놓은거
+        //이부분은 다시 수정해야할 부분, 이런저런 기능이 있다는걸 기억하기 위해 써 놓은거
         http
                 .authorizeHttpRequests(request -> request
                         //공지사항 조회는 관리자, 유저 둘다
-                        .requestMatchers(HttpMethod.GET,"/api/user/*/class-schedules/**","/api/notices").hasAnyRole("ADMIN","USER")
+                        .requestMatchers(HttpMethod.GET,"/api/classSchedules","/api/notices").hasAnyRole("ADMIN","USER")
                         //공지사항 --> 관리자
-                        .requestMatchers("/api/user/*/class-schedules/**","/api/notices").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/classSchedules/**","/api/notices").hasRole("ADMIN")
 
                         // 댓글 --> 유저 ,관리자
                         .requestMatchers("/api/notices/*/comments/**").hasAnyRole("ADMIN","USER")

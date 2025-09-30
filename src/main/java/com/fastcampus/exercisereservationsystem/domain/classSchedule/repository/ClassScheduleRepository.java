@@ -12,6 +12,7 @@ public interface ClassScheduleRepository extends JpaRepository<ClassScheduleEnti
 
 
 
+
     List<ClassScheduleEntity> findAllByDateOrderByStartTimeAsc(LocalDate date);
 
     List<ClassScheduleEntity> findAllByDate(LocalDate date);
