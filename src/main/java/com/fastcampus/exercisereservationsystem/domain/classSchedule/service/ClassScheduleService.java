@@ -11,6 +11,7 @@ import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
@@ -21,7 +22,7 @@ import java.util.List;
 public class ClassScheduleService {
 
     private final ClassScheduleRepository classScheduleRepository;
-
+    @Transactional
     public CreateClassScheduleResponse createClassSchedule(CreateClassScheduleRequest request,UserEntity userEntity) {
         ClassScheduleEntity classScheduleEntity;
         classScheduleEntity = new ClassScheduleEntity(request.classname(),request.startTime(),request.endTime(),request.date(),request.capacity(),userEntity);
@@ -29,19 +30,19 @@ public class ClassScheduleService {
         return CreateClassScheduleResponse.from(classScheduleEntity);
     }
 
-
+    @Transactional(readOnly = true)
     public List<GetClassScheduleResponse> getByDate(LocalDate date) {
         List<ClassScheduleEntity> classScheduleEntities = classScheduleRepository.findAllByDateOrderByStartTimeAsc(date);
        return classScheduleEntities.stream().map(GetClassScheduleResponse::from).toList();
     }
-
+    @Transactional
     public UpdateClassScheduleResponse updateClassSchedule(UpdateClassScheduleRequest request,Long classSchedulesId) {
         ClassScheduleEntity classScheduleEntity = classScheduleRepository.findById(classSchedulesId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다."));
         classScheduleEntity.updateClassSchedule(request.classname(), request.startTime(),request.endTime(),request.date(),request.capacity());
         classScheduleRepository.save(classScheduleEntity);
         return UpdateClassScheduleResponse.from(classScheduleEntity);
     }
-
+    @Transactional
     public void deleteClassSchedule(Long classSchedulesId) {
         ClassScheduleEntity classScheduleEntity = classScheduleRepository.findById(classSchedulesId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다."));
         classScheduleRepository.delete(classScheduleEntity);

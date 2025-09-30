@@ -19,7 +19,6 @@ public class CommentController {
 
     private final CommentService commentService;
 
-
     //댓글 생성
     @PostMapping
     public ResponseEntity<CreateCommentResponse> createComment(

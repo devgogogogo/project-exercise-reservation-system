@@ -33,7 +33,7 @@ public class CommentService {
         return CreateCommentResponse.from(commentEntity);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<GetCommentListResponse> getCommentList(Long noticeId) {
         noticeRepository.findById(noticeId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 공지가 존재하지 않습니다."));
         List<CommentEntity> commentList = commentRepository.findByNoticeIdWithUser(noticeId);

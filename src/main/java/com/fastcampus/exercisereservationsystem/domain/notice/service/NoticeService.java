@@ -12,6 +12,7 @@ import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -22,6 +23,7 @@ public class NoticeService {
     private final NoticeRepository noticeRepository;
 
     //공지사항 생성
+    @Transactional
     public CreateNoticeResponse createNotice(CreateNoticeRequest request,UserEntity userEntity) {
         NoticeEntity noticeEntity = new NoticeEntity(request.title(), request.description(), userEntity);
         noticeRepository.save(noticeEntity);
@@ -29,18 +31,21 @@ public class NoticeService {
     }
 
     //공지사항 전체조회
+    @Transactional(readOnly = true)
     public List<GetNoticeListResponse> getNoticeList() {
         List<NoticeEntity> noticeList = noticeRepository.findAll();
         return noticeList.stream().map(noticeEntity -> GetNoticeListResponse.from(noticeEntity)).toList();
     }
 
     //공지사항 단건 조회
+    @Transactional(readOnly = true)
     public GetNoticeResponse getNotice(Long noticeId) {
         NoticeEntity noticeEntity = noticeRepository.findByIdWithUser(noticeId).orElseThrow(() -> new EntityNotFoundException("공지사항이 없습니다."));
         return new GetNoticeResponse(noticeEntity.getId(),noticeEntity.getUser().getUsername(), noticeEntity.getTitle(), noticeEntity.getDescription());
     }
 
     //공지사항 수정
+    @Transactional
     public UpdateNoticeResponse updateNotice(UpdateNoticeRequest request, Long noticeId) {
         NoticeEntity noticeEntity = noticeRepository.findByIdWithUser(noticeId).orElseThrow(() -> new EntityNotFoundException("공지사항이 없습니다."));
         noticeEntity.updateNotice(request.title(), request.description());
@@ -48,6 +53,7 @@ public class NoticeService {
         return UpdateNoticeResponse.from(noticeEntity); //DTO 안에 유저를 가지고 오는게 있어서 LazyInitializationException 예외가 터짐
     }
 
+    @Transactional
     public void deleteNotice(Long noticeId) {
         NoticeEntity noticeEntity = noticeRepository.findById(noticeId).orElseThrow(() -> new EntityNotFoundException("공지사항이 없습니다."));
         noticeRepository.delete(noticeEntity);
