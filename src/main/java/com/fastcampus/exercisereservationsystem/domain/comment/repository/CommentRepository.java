@@ -19,4 +19,9 @@ public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
     Optional<CommentEntity> findByIdWithUser(@Param("commentId") Long commentId);
 
     List<CommentEntity> findByNoticeId(Long noticeId);
+
+    @Query(" select c from CommentEntity c join fetch c.user where c.id = :commentId and c.notice.id = :noticeId")
+    Optional<CommentEntity> findByIdAndNoticeIdWithUser(Long commentId, Long noticeId);
+
+
 }
