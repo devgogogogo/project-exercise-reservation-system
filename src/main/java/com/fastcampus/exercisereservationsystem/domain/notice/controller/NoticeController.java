@@ -51,16 +51,19 @@ public class NoticeController {
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{noticeId}")
     public ResponseEntity<UpdateNoticeResponse> updateNotice(
+            @AuthenticationPrincipal UserEntity userEntity,
             @RequestBody UpdateNoticeRequest request,
             @PathVariable Long noticeId) {
-        UpdateNoticeResponse response = noticeService.updateNotice(request, noticeId);
+        UpdateNoticeResponse response = noticeService.updateNotice(userEntity,request, noticeId);
         return ResponseEntity.ok().body(response);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{noticeId}")
-    public ResponseEntity<Void> deleteNotice(@PathVariable Long noticeId) {
-        noticeService.deleteNotice(noticeId);
+    public ResponseEntity<Void> deleteNotice(
+            @AuthenticationPrincipal UserEntity userEntity,
+            @PathVariable Long noticeId) {
+        noticeService.deleteNotice(userEntity,noticeId);
         return ResponseEntity.noContent().build();
     }
 }

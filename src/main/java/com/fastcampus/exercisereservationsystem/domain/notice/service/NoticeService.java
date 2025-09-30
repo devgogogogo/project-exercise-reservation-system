@@ -1,5 +1,6 @@
 package com.fastcampus.exercisereservationsystem.domain.notice.service;
 
+import com.fastcampus.exercisereservationsystem.common.exception.BizException;
 import com.fastcampus.exercisereservationsystem.domain.notice.dto.request.CreateNoticeRequest;
 import com.fastcampus.exercisereservationsystem.domain.notice.dto.request.UpdateNoticeRequest;
 import com.fastcampus.exercisereservationsystem.domain.notice.dto.response.CreateNoticeResponse;
@@ -7,9 +8,10 @@ import com.fastcampus.exercisereservationsystem.domain.notice.dto.response.GetNo
 import com.fastcampus.exercisereservationsystem.domain.notice.dto.response.GetNoticeResponse;
 import com.fastcampus.exercisereservationsystem.domain.notice.dto.response.UpdateNoticeResponse;
 import com.fastcampus.exercisereservationsystem.domain.notice.entity.NoticeEntity;
+import com.fastcampus.exercisereservationsystem.domain.notice.exception.NoticeErrorCode;
 import com.fastcampus.exercisereservationsystem.domain.notice.repository.NoticeRepository;
 import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
-import jakarta.persistence.EntityNotFoundException;
+import com.fastcampus.exercisereservationsystem.domain.user.exception.UserErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,22 +42,28 @@ public class NoticeService {
     //공지사항 단건 조회
     @Transactional(readOnly = true)
     public GetNoticeResponse getNotice(Long noticeId) {
-        NoticeEntity noticeEntity = noticeRepository.findByIdWithUser(noticeId).orElseThrow(() -> new EntityNotFoundException("공지사항이 없습니다."));
+        NoticeEntity noticeEntity = noticeRepository.findByIdWithUser(noticeId).orElseThrow(() ->new BizException(NoticeErrorCode.NOTICE_NOT_FOUND));
         return new GetNoticeResponse(noticeEntity.getId(),noticeEntity.getUser().getUsername(), noticeEntity.getTitle(), noticeEntity.getDescription());
     }
 
     //공지사항 수정
     @Transactional
-    public UpdateNoticeResponse updateNotice(UpdateNoticeRequest request, Long noticeId) {
-        NoticeEntity noticeEntity = noticeRepository.findByIdWithUser(noticeId).orElseThrow(() -> new EntityNotFoundException("공지사항이 없습니다."));
+    public UpdateNoticeResponse updateNotice(UserEntity userEntity,UpdateNoticeRequest request, Long noticeId) {
+        NoticeEntity noticeEntity = noticeRepository.findByIdWithUser(noticeId).orElseThrow(() ->new BizException(NoticeErrorCode.NOTICE_NOT_FOUND));
+        if (!userEntity.getId().equals(noticeEntity.getUser().getId())) {
+            throw new BizException(UserErrorCode.USER_NOT_OWNER);
+        }
         noticeEntity.updateNotice(request.title(), request.description());
         noticeRepository.save(noticeEntity);
         return UpdateNoticeResponse.from(noticeEntity); //DTO 안에 유저를 가지고 오는게 있어서 LazyInitializationException 예외가 터짐
     }
 
     @Transactional
-    public void deleteNotice(Long noticeId) {
-        NoticeEntity noticeEntity = noticeRepository.findById(noticeId).orElseThrow(() -> new EntityNotFoundException("공지사항이 없습니다."));
+    public void deleteNotice(UserEntity userEntity,Long noticeId) {
+        NoticeEntity noticeEntity = noticeRepository.findById(noticeId).orElseThrow(() ->new BizException(NoticeErrorCode.NOTICE_NOT_FOUND));
+        if (!userEntity.getId().equals(noticeEntity.getUser().getId())) {
+            throw new BizException(UserErrorCode.USER_NOT_OWNER);
+        }
         noticeRepository.delete(noticeEntity);
     }
 }

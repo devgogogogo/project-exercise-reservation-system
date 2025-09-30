@@ -75,10 +75,6 @@ public class SecurityConfig {
         //이부분은 다시 수정해야할 부분, 이런저런 기능이 있다는걸 기억하기 위해 써 놓은거
         http
                 .authorizeHttpRequests(request -> request
-                        //공지사항
-                        .requestMatchers(HttpMethod.GET,"/api/notices/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/api/notices/**").hasRole("ADMIN")
-
                         //수업스케쥴
                         .requestMatchers(HttpMethod.GET,"/api/classSchedules/**").hasAnyRole("ADMIN","USER")
                         .requestMatchers("/api/classSchedules/**").hasRole("ADMIN")
@@ -86,6 +82,11 @@ public class SecurityConfig {
                         // 댓글 --> 유저 ,관리자
                         .requestMatchers("/api/notices/*/comments/**").hasAnyRole("ADMIN","USER")
 
+                        //공지사항
+                        .requestMatchers(HttpMethod.GET,"/api/notices/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/notices/**").hasRole("ADMIN")
+
+                        //유저
                         .requestMatchers(HttpMethod.POST, "/api/users/login","/api/users")
                         .permitAll()
                         .anyRequest().authenticated()
