@@ -7,8 +7,11 @@ import com.fastcampus.exercisereservationsystem.domain.notice.dto.response.GetNo
 import com.fastcampus.exercisereservationsystem.domain.notice.dto.response.GetNoticeResponse;
 import com.fastcampus.exercisereservationsystem.domain.notice.dto.response.UpdateNoticeResponse;
 import com.fastcampus.exercisereservationsystem.domain.notice.service.NoticeService;
+import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,9 +24,12 @@ public class NoticeController {
     private final NoticeService noticeService;
 
     //공지사항 생성
-    @PostMapping("/{userId}")
-    public ResponseEntity<CreateNoticeResponse> createNotice(@RequestBody CreateNoticeRequest request, @PathVariable Long userId) {
-        CreateNoticeResponse response = noticeService.createNotice(request, userId);
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping()
+    public ResponseEntity<CreateNoticeResponse> createNotice(
+            @RequestBody CreateNoticeRequest request,
+            @AuthenticationPrincipal UserEntity userEntity) {
+        CreateNoticeResponse response = noticeService.createNotice(request,userEntity);
         return ResponseEntity.ok().body(response);
     }
 
@@ -42,12 +48,16 @@ public class NoticeController {
     }
 
     //공지사항 수정
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{noticeId}")
-    public ResponseEntity<UpdateNoticeResponse> updateNotice(@RequestBody UpdateNoticeRequest request, @PathVariable Long noticeId) {
+    public ResponseEntity<UpdateNoticeResponse> updateNotice(
+            @RequestBody UpdateNoticeRequest request,
+            @PathVariable Long noticeId) {
         UpdateNoticeResponse response = noticeService.updateNotice(request, noticeId);
         return ResponseEntity.ok().body(response);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{noticeId}")
     public ResponseEntity<Void> deleteNotice(@PathVariable Long noticeId) {
         noticeService.deleteNotice(noticeId);

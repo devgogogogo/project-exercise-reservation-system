@@ -1,11 +1,16 @@
 package com.fastcampus.exercisereservationsystem.domain.classSchedule.controller;
 
+import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.request.CreateClassScheduleRequest;
+import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.request.UpdateClassScheduleRequest;
+import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.response.CreateClassScheduleResponse;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.response.GetClassScheduleResponse;
+import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.response.UpdateClassScheduleResponse;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.service.ClassScheduleService;
 import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,12 +24,36 @@ public class ClassScheduleController {
 
     private final ClassScheduleService classScheduleService;
 
-    @GetMapping
-    public ResponseEntity<List<GetClassScheduleResponse>> getByDate(
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping()
+    public ResponseEntity<CreateClassScheduleResponse> createClassSchedule(
             @AuthenticationPrincipal UserEntity userEntity,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
-    ) {
-        List<GetClassScheduleResponse> responses = classScheduleService.getByDate(userEntity, date);
+            @RequestBody CreateClassScheduleRequest request) {
+        CreateClassScheduleResponse response = classScheduleService.createClassSchedule(request,userEntity);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<GetClassScheduleResponse>> getByDate(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        List<GetClassScheduleResponse> responses = classScheduleService.getByDate(date);
         return ResponseEntity.ok().body(responses);
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{classSchedulesId}")
+    public ResponseEntity<UpdateClassScheduleResponse> updateClassSchedule(
+            @PathVariable Long classSchedulesId,
+            @RequestBody UpdateClassScheduleRequest request) {
+        UpdateClassScheduleResponse response = classScheduleService.updateClassSchedule(request, classSchedulesId);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{classSchedulesId}")
+    public ResponseEntity<Void> deleteClassSchedule(@PathVariable Long classSchedulesId) {
+        classScheduleService.deleteClassSchedule(classSchedulesId);
+        return ResponseEntity.noContent().build();
+    }
+
+
 }

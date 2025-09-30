@@ -11,8 +11,6 @@ import java.util.List;
 public interface ClassScheduleRepository extends JpaRepository<ClassScheduleEntity, Long> {
 
 
-
-
     List<ClassScheduleEntity> findAllByDateOrderByStartTimeAsc(LocalDate date);
 
     List<ClassScheduleEntity> findAllByDate(LocalDate date);

@@ -9,7 +9,6 @@ import com.fastcampus.exercisereservationsystem.domain.notice.dto.response.Updat
 import com.fastcampus.exercisereservationsystem.domain.notice.entity.NoticeEntity;
 import com.fastcampus.exercisereservationsystem.domain.notice.repository.NoticeRepository;
 import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
-import com.fastcampus.exercisereservationsystem.domain.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,15 +20,10 @@ import java.util.List;
 public class NoticeService {
 
     private final NoticeRepository noticeRepository;
-    private final UserRepository userRepository;
 
     //공지사항 생성
-    public CreateNoticeResponse createNotice(CreateNoticeRequest request, Long userId) {
-
-        UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("유저가 없습니다."));
-
+    public CreateNoticeResponse createNotice(CreateNoticeRequest request,UserEntity userEntity) {
         NoticeEntity noticeEntity = new NoticeEntity(request.title(), request.description(), userEntity);
-
         noticeRepository.save(noticeEntity);
         return CreateNoticeResponse.from(noticeEntity);
     }
@@ -53,7 +47,6 @@ public class NoticeService {
         noticeRepository.save(noticeEntity);
         return UpdateNoticeResponse.from(noticeEntity); //DTO 안에 유저를 가지고 오는게 있어서 LazyInitializationException 예외가 터짐
     }
-
 
     public void deleteNotice(Long noticeId) {
         NoticeEntity noticeEntity = noticeRepository.findById(noticeId).orElseThrow(() -> new EntityNotFoundException("공지사항이 없습니다."));
