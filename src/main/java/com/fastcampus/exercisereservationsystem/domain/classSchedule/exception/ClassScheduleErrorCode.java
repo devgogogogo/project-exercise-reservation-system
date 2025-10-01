@@ -1,4 +1,4 @@
-package com.fastcampus.exercisereservationsystem.domain.reservation.exception;
+package com.fastcampus.exercisereservationsystem.domain.classSchedule.exception;
 
 import com.fastcampus.exercisereservationsystem.common.exception.ErrorCode;
 import lombok.Getter;
@@ -7,16 +7,14 @@ import org.springframework.http.HttpStatus;
 
 @RequiredArgsConstructor
 @Getter
-public enum ReservationErrorCode implements ErrorCode {
-    RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "예약이 존재하지 않습니다."),
-    RESERVATION_ALREADY_EXISTED(HttpStatus.CONFLICT, "R002", "예약이 이미 존재합니다."),
-    RESERVATION_CAPACITY_FULL(HttpStatus.CONFLICT, "R002", "정원이 꽉 찼습니다.");
+public enum ClassScheduleErrorCode implements ErrorCode {
+    SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "S001", "수업 스케쥴이 존재하지 않습니다."),
+    SCHEDULE_ALREADY_EXISTED(HttpStatus.CONFLICT, "S002", "수업 스케줄이 이미 존재합니다.");
 
 
     private final HttpStatus httpStatus;
     private final String code;
     private final String message;
-
 
     @Override
     public HttpStatus getStatus() {

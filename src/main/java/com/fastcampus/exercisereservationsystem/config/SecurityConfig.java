@@ -86,6 +86,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,"/api/notices/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/notices/**").hasRole("ADMIN")
 
+                        //예약
+                        .requestMatchers(HttpMethod.GET,"/api/class-schedules/*/reservation/**").hasRole("USER")
+
+                        //todo : 프로그램은 아직 구현 안함 구현하면 이곧에 수정 들어갈 예정.
                         //유저
                         .requestMatchers(HttpMethod.POST, "/api/users/login","/api/users")
                         .permitAll()

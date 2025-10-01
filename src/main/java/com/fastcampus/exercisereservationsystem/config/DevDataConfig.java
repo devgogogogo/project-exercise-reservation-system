@@ -6,7 +6,6 @@ import com.fastcampus.exercisereservationsystem.domain.user.repository.UserRepos
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
@@ -17,7 +16,7 @@ public class DevDataConfig {
     @Bean
     CommandLineRunner seedAdmin(UserRepository users, PasswordEncoder encoder) {
         return args -> {
-            String adminUsername = "dlrnlgus@email.com";
+            String adminUsername = "admin@email.com";
             users.findByUsername(adminUsername).ifPresentOrElse(
                     u -> {}, // 이미 있으면 아무 것도 안함
                     () -> {

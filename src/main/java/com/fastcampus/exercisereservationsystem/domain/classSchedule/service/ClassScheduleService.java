@@ -47,6 +47,4 @@ public class ClassScheduleService {
         ClassScheduleEntity classScheduleEntity = classScheduleRepository.findById(classSchedulesId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다."));
         classScheduleRepository.delete(classScheduleEntity);
     }
-
-
 }
