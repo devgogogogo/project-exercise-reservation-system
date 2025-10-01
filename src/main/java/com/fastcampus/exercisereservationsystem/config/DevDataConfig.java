@@ -35,4 +35,25 @@ public class DevDataConfig {
             );
         };
     }
+
+    @Bean
+    CommandLineRunner seedUser(UserRepository users, PasswordEncoder encoder) {
+        return args -> {
+            String username = "user@email.com";
+            users.findByUsername(username).ifPresentOrElse(
+                    u -> {},
+                    () -> {
+                        UserEntity user = new UserEntity();
+
+                        user.setUsername(username);
+                        user.setPassword(encoder.encode("1234"));
+                        user.setRole(Role.USER);
+                        user.setName("일반유저");
+                        user.setStartAt(LocalDate.now());
+                        user.setEndAt(LocalDate.now().plusYears(1));
+                        users.save(user);
+                    }
+            );
+        };
+    }
 }

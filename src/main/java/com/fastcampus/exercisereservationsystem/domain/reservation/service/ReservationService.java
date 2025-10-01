@@ -28,11 +28,11 @@ public class ReservationService {
     public ReservationResponse reservation(Long scheduleId, UserEntity userEntity) {
 
         // 1) 스케줄 조회(+락) -동시성 안전하게 정원 체크
-        ClassScheduleEntity classScheduleEntity = classScheduleRepository.findByIdForUpdate(scheduleId).orElseThrow(() -> new BizException(ClassScheduleErrorCode.SCHEDULE_NOT_FOUND));
+        ClassScheduleEntity classScheduleEntity = classScheduleRepository.findById(scheduleId).orElseThrow(() -> new BizException(ClassScheduleErrorCode.SCHEDULE_NOT_FOUND));
 
         //2) 중복예약 방지
         if (reservationRepository.existsByClassSchedule_IdAndUser_Id(scheduleId, userEntity.getId())) {
-           throw new BizException(ClassScheduleErrorCode.SCHEDULE_NOT_FOUND);
+           throw new BizException(ReservationErrorCode.RESERVATION_ALREADY_EXISTED);
         }
         Long current = reservationRepository.countByClassSchedule_Id(scheduleId);
         if (current >= classScheduleEntity.getCapacity()) {

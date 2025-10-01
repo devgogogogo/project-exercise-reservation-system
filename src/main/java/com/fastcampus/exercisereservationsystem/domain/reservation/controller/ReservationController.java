@@ -39,7 +39,7 @@ public class ReservationController {
 
 
     //예약 취소
-    @PostMapping
+    @PostMapping("/cancel")
     public ResponseEntity<ReservationResponse> cancelReservation(
             @PathVariable Long scheduleId,
             @AuthenticationPrincipal UserEntity userEntity

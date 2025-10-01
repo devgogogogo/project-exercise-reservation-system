@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ReservationErrorCode implements ErrorCode {
     RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "예약이 존재하지 않습니다."),
-    RESERVATION_ALREADY_EXISTED(HttpStatus.CONFLICT, "R002", "예약이 이미 존재합니다."),
+    RESERVATION_ALREADY_EXISTED(HttpStatus.CONFLICT, "R002", "이미 예약을 했습니다"),
     RESERVATION_CAPACITY_FULL(HttpStatus.CONFLICT, "R002", "정원이 꽉 찼습니다.");
 
 

@@ -1,7 +1,6 @@
 package com.fastcampus.exercisereservationsystem.common.filter;
 
 import com.fastcampus.exercisereservationsystem.common.service.JwtService;
-import com.fastcampus.exercisereservationsystem.domain.user.service.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
