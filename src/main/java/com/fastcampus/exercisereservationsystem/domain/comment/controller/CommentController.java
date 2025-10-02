@@ -8,12 +8,11 @@ import com.fastcampus.exercisereservationsystem.domain.comment.dto.response.Upda
 import com.fastcampus.exercisereservationsystem.domain.comment.service.CommentService;
 import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/notices/{noticeId}/comments")
@@ -33,12 +32,15 @@ public class CommentController {
         return ResponseEntity.ok().body(response);
     }
 
-    //전체 댓글
-    @PreAuthorize("hasAnyRole('ADMIN','USER')")
+    //페이징 조회
     @GetMapping
-    public ResponseEntity<List<GetCommentListResponse>> getCommentList(@PathVariable Long noticeId) {
-        List<GetCommentListResponse> list = commentService.getCommentList(noticeId);
-        return ResponseEntity.ok().body(list);
+    public ResponseEntity<Page<GetCommentListResponse>> getCommentPage(
+            @PathVariable Long noticeId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<GetCommentListResponse> responses = commentService.getCommentPage(noticeId, page, size);
+        return ResponseEntity.ok().body(responses);
     }
 
     //댓글 수정

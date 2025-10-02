@@ -10,6 +10,7 @@ public record GetCommentListResponse(
         LocalDate modifiedAt
 ) {
     public static GetCommentListResponse from(CommentEntity entity) {
+
         return new GetCommentListResponse(
                 entity.getId(),
                 entity.getDescription(),
