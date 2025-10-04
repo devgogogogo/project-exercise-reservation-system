@@ -58,8 +58,7 @@
 ---
 
 ## 🗂 ERD
-
-<img width="967" height="582" alt="ERD" src="https://github.com/user-attachments/assets/0a03f2c9-0e13-498b-99c4-3d96b8e65dce" />
+<img width="2116" height="818" alt="ERD" src="https://github.com/user-attachments/assets/ab48093c-7b6e-4f98-a2fe-3b6d78cf3f2c" />
 
 ---
 
