@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CrossFit Box — 홈</title>
+
+    <!-- Tailwind (개발용 CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- 가로 스크롤바 숨김 유틸 -->
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-white text-gray-900">
+
+<!-- HEADER -->
+<header class="border-b border-gray-200 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+        <a th:href="@{/'/'}" class="font-extrabold tracking-tight text-xl">CrossFit Box</a>
+        <nav class="flex items-center gap-4">
+            <a th:href="@{/login}" class="text-sm font-medium hover:underline">로그인</a>
+            <a th:href="@{/signup}" class="text-sm font-medium hover:underline">회원가입</a>
+        </nav>
+    </div>
+
+    <!-- 카테고리 바 (가로 스크롤) -->
+    <nav class="border-t border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <ul class="flex gap-6 overflow-x-auto no-scrollbar py-3 text-sm font-semibold">
+                <li><a th:href="@{/notices}" class="hover:text-emerald-600">크로스핏 이란?</a></li>
+                <li><a th:href="@{/booking}" class="hover:text-emerald-600">코치 소개</a></li>
+                <li><a th:href="@{/program}" class="hover:text-emerald-600">문의 사항</a></li>
+                <li><a th:href="@{/my}" class="hover:text-emerald-600">오시는 길</a></li>
+            </ul>
+        </div>
+    </nav>
+</header>
+
+<!-- BODY -->
+<main class="flex-1">
+    <!-- 가운데 히어로 이미지 -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="w-full rounded-2xl overflow-hidden shadow-lg">
+            <img
+                    src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=2000&auto=format&fit=crop"
+                    alt="크로스핏 히어로"
+                    class="w-full h-[500px] md:h-[600px] object-cover"
+            />
+        </div>
+    </section>
+
+    <!-- 회원권 남은 일수 카드 -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2" >
+        <div class="max-w-5xl mx-auto grid grid-cols-5 gap-0 mb-10">
+            <!-- 왼쪽 흰 카드 -->
+            <div class="col-span-3 bg-white rounded-l-2xl shadow p-6 border border-gray-100">
+                <p class="text-sm text-gray-400">회원권</p>
+                <h3 class="mt-2 text-xl font-extrabold" th:text="${membership?.name} ?: '3개월 카드'">3개월 카드</h3>
+                <div class="mt-6">
+          <span th:if="${membership?.onHold}"
+                class="inline-block px-4 py-2 rounded-xl bg-orange-400 text-white text-sm font-bold">회원권 홀딩중</span>
+                    <span th:if="${!membership?.onHold}"
+                          class="inline-block px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-bold">이용중</span>
+                </div>
+            </div>
+            <!-- 오른쪽 오렌지 카드 -->
+            <div class="col-span-2 bg-orange-400 text-white rounded-r-2xl shadow p-6 flex flex-col justify-between border border-orange-300">
+                <div>
+                    <p class="text-sm/none opacity-90" th:text="${membership?.onHold} ? '회원권 홀딩중' : '남은 기간'">남은 기간</p>
+                    <p class="mt-2 text-3xl font-extrabold" th:text="${'D-' + (membership?.remainingDays ?: 35)}">D-35</p>
+                </div>
+                <div class="mt-4">
+                    <a th:if="${membership?.onHold}" th:href="@{/membership/hold/cancel}"
+                       class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-white text-orange-500 font-bold">홀딩 해제</a>
+                    <a th:if="${!membership?.onHold}" th:href="@{/membership/hold}"
+                       class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-white text-orange-500 font-bold">홀딩 신청</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 공지사항 & 오늘의 운동 카드(같은 틀) -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 grid gap-6 md:grid-cols-2 py-2">
+        <!-- 공지사항 -->
+        <div class="bg-white rounded-2xl shadow p-6 border border-gray-100 ">
+            <h3 class="text-lg font-extrabold mb-4">공지 사항</h3>
+            <ul class="divide-y">
+                <li class="py-3 flex items-center justify-between" th:each="n : ${notices}">
+                    <a th:href="@{'/notices/' + ${n.id}}" class="truncate hover:underline" th:text="${n.title}">10월 공지사항</a>
+                    <span class="text-sm text-gray-400 shrink-0 ml-4" th:text="${#temporals.format(n.date, 'yyyy.MM.dd')}">2025.09.29</span>
+                </li>
+                <li class="py-3 flex items-center justify-between" th:if="${#lists.isEmpty(notices)}">
+                    <span class="text-gray-500">등록된 공지가 없습니다.</span>
+                </li>
+            </ul>
+            <div class="mt-4 text-right">
+                <a th:href="@{/notices}" class="text-sm font-semibold text-emerald-600 hover:underline">전체 보기</a>
+            </div>
+        </div>
+
+        <!-- 오늘의 운동 -->
+        <div class="bg-white rounded-2xl shadow p-6 border border-gray-100">
+            <h3 class="text-lg font-extrabold mb-4">오늘의 운동 (WOD)</h3>
+            <ul class="divide-y">
+                <li class="py-3 flex items-center justify-between" th:each="w : ${wods}">
+                    <a th:href="@{'/wod/' + ${w.id}}" class="truncate hover:underline" th:text="${w.title}">
+                        Strength: Back Squat 5×5 / Metcon: 12’ AMRAP
+                    </a>
+                    <span class="text-sm text-gray-400 shrink-0 ml-4" th:text="${#temporals.format(w.date, 'yyyy.MM.dd')}">2025.09.29</span>
+                </li>
+                <li class="py-3 flex items-center justify-between" th:if="${#lists.isEmpty(wods)}">
+                    <span class="text-gray-500">등록된 WOD가 없습니다.</span>
+                </li>
+            </ul>
+            <div class="mt-4 text-right">
+                <a th:href="@{/wod}" class="text-sm font-semibold text-emerald-600 hover:underline">전체 보기</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 네모 메뉴 4개 -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <a th:href="@{/notices}" class="block rounded-2xl border shadow-sm hover:shadow-md transition">
+                <div class="flex flex-col items-center justify-center p-6 min-h-[120px]">
+                    <div class="w-12 h-12 rounded-xl border flex items-center justify-center mb-3">📢</div>
+                    <span class="font-bold">공지사항</span>
+                </div>
+            </a>
+            <a th:href="@{/booking}" class="block rounded-2xl border shadow-sm hover:shadow-md transition">
+                <div class="flex flex-col items-center justify-center p-6 min-h-[120px]">
+                    <div class="w-12 h-12 rounded-xl border flex items-center justify-center mb-3">🗓️</div>
+                    <span class="font-bold">수업 예약</span>
+                </div>
+            </a>
+            <a th:href="@{/my}" class="block rounded-2xl border shadow-sm hover:shadow-md transition">
+                <div class="flex flex-col items-center justify-center p-6 min-h-[120px]">
+                    <div class="w-12 h-12 rounded-xl border flex items-center justify-center mb-3">👤</div>
+                    <span class="font-bold">내 정보</span>
+                </div>
+            </a>
+            <a th:href="@{/program}" class="block rounded-2xl border shadow-sm hover:shadow-md transition">
+                <div class="flex flex-col items-center justify-center p-6 min-h-[120px]">
+                    <div class="w-12 h-12 rounded-xl border flex items-center justify-center mb-3">🏋️</div>
+                    <span class="font-bold">프로그램</span>
+                </div>
+            </a>
+        </div>
+    </section>
+</main>
+
+<!-- FOOTER -->
+<footer class="mt-auto border-t border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center text-sm text-gray-500">
+        © <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}"></span> CrossFit Box. All rights reserved.
+    </div>
+</footer>
+
+</body>
+</html>
