@@ -75,6 +75,8 @@ public class SecurityConfig {
         //이부분은 다시 수정해야할 부분, 이런저런 기능이 있다는걸 기억하기 위해 써 놓은거
         http
                 .authorizeHttpRequests(request -> request
+                        //템플릿 허용
+                        .requestMatchers("/", "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico", "/error").permitAll()
                         //수업스케쥴
                         .requestMatchers(HttpMethod.GET,"/api/classSchedules/**").hasAnyRole("ADMIN","USER")
                         .requestMatchers("/api/classSchedules/**").hasRole("ADMIN")
@@ -91,9 +93,11 @@ public class SecurityConfig {
 
                         //todo : 프로그램은 아직 구현 안함 구현하면 이곧에 수정 들어갈 예정.
                         //유저
-                        .requestMatchers(HttpMethod.POST, "/api/users/login","/api/users")
-                        .permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/users/login","/api/users").permitAll()
+
+                        .requestMatchers("/api/**").authenticated()
+                        //또는 더 일반적으로 홈, 정적 리소스(css/js/img)까지 열어줘야 함.
+                        .anyRequest().permitAll()
                 );
         http.cors(Customizer.withDefaults());
         http.sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
