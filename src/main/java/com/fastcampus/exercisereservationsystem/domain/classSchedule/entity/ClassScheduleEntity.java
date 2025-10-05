@@ -11,7 +11,10 @@ import java.time.LocalTime;
 
 @Getter
 @NoArgsConstructor
-@Table(name = "schedules")
+@Table(name = "schedules",indexes = {
+//        @Index(name = "inx_테이블명_컬럼명",columnList = "칼럼이름여긴 일치 시켜야한다."),
+        @Index(name = "ind_schedule_date",columnList = "date")
+})
 @Entity
 public class ClassScheduleEntity {
 
