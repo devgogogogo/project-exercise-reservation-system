@@ -1,9 +1,7 @@
 package com.fastcampus.exercisereservationsystem.domain.user.controller;
 
-import com.fastcampus.exercisereservationsystem.domain.user.dto.request.CreateUserRequest;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.request.LoginUserRequest;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.request.UpdateUserRequest;
-import com.fastcampus.exercisereservationsystem.domain.user.dto.response.CreateUserResponse;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.response.GetUserResponse;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.response.LoginUserResponse;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.response.UpdateUserResponse;
@@ -22,12 +20,17 @@ public class UserController {
 
     private final UserService userService;
 
-    //회원생성
-    @PostMapping
-    public ResponseEntity<CreateUserResponse> signUp(@RequestBody CreateUserRequest request) {
-        CreateUserResponse response = userService.signUp(request);
-        return ResponseEntity.ok().body(response);
-    }
+
+//    //회원생성
+//    @PostMapping("/signup")
+//    public ResponseEntity<CreateUserResponse> signupSubmit(
+//            @Valid @ModelAttribute("createUserForm") CreateUserRequest request,
+//            BindingResult bindingResult,
+//            Model model) {
+//        CreateUserResponse response = userService.signupSubmit(request);
+//        return ResponseEntity.ok().body(response);
+//    }
+
 
     //로그인
     @PostMapping("/login")

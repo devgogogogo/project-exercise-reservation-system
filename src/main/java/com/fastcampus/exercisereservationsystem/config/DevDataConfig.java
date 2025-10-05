@@ -25,6 +25,7 @@ public class DevDataConfig {
                         );
                         // 필드 세팅 (UserEntity 구조에 맞게 수정)
                         admin.setUsername(adminUsername);
+                        admin.setNickname("adminNickname");
                         admin.setPassword(encoder.encode("1234"));
                         admin.setRole(Role.ADMIN);
                         admin.setName("관리자");
@@ -44,8 +45,8 @@ public class DevDataConfig {
                     u -> {},
                     () -> {
                         UserEntity user = new UserEntity();
-
                         user.setUsername(username);
+                        user.setNickname("userNickname");
                         user.setPassword(encoder.encode("1234"));
                         user.setRole(Role.USER);
                         user.setName("일반유저");

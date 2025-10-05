@@ -50,10 +50,10 @@ public class SecurityConfig {
     }
 
     /**
-     *Bean이 필요한경우
+     * Bean이 필요한경우
      * 프론트가 다른 오리진(예: http://localhost:3000)에서 브라우저로 API 호출할 때
      * 브라우저 환경에서 Authorization 헤더 사용(= JWT)하거나, 쿠키로 리프레시 토큰을 주고받을 때
-     *
+     * <p>
      * 굳이 없어도 되는 경우
      * Postman, cURL 같은 서버-서버/도구 호출 (브라우저의 CORS 정책이 적용되지 않음)
      * 같은 오리진에서만 호출
@@ -78,31 +78,30 @@ public class SecurityConfig {
                         //템플릿 허용
                         .requestMatchers("/", "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico", "/error").permitAll()
                         //수업스케쥴
-                        .requestMatchers(HttpMethod.GET,"/api/classSchedules/**").hasAnyRole("ADMIN","USER")
+                        .requestMatchers(HttpMethod.GET, "/api/classSchedules/**").hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/api/classSchedules/**").hasRole("ADMIN")
 
                         // 댓글 --> 유저 ,관리자
-                        .requestMatchers("/api/notices/*/comments/**").hasAnyRole("ADMIN","USER")
+                        .requestMatchers("/api/notices/*/comments/**").hasAnyRole("ADMIN", "USER")
 
                         //공지사항
-                        .requestMatchers(HttpMethod.GET,"/api/notices/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/notices/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/notices/**").hasRole("ADMIN")
 
                         //예약
-                        .requestMatchers(HttpMethod.GET,"/api/class-schedules/*/reservation/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/api/class-schedules/*/reservation/**").hasRole("USER")
 
                         //todo : 프로그램은 아직 구현 안함 구현하면 이곧에 수정 들어갈 예정.
                         //유저
-                        .requestMatchers(HttpMethod.POST, "/api/users/login","/api/users").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/users/login", "/api/users", "/signup", "/assets/**", "/favicon.ico").permitAll()
 
-                        .requestMatchers("/api/**").authenticated()
                         //또는 더 일반적으로 홈, 정적 리소스(css/js/img)까지 열어줘야 함.
                         .anyRequest().permitAll()
-                );
+                ).formLogin(login -> login.loginPage("/login").permitAll());
         http.cors(Customizer.withDefaults());
-        http.sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.csrf(csrf -> csrf.disable());
-        http.addFilterBefore(jwtExceptionFilter,UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtExceptionFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         http.formLogin(AbstractHttpConfigurer::disable);
         http.httpBasic(AbstractHttpConfigurer::disable);

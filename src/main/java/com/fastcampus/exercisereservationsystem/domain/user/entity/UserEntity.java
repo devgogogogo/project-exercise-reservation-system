@@ -1,5 +1,6 @@
 package com.fastcampus.exercisereservationsystem.domain.user.entity;
 
+import com.fastcampus.exercisereservationsystem.common.BaseEntity;
 import com.fastcampus.exercisereservationsystem.domain.user.enums.Role;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
@@ -19,7 +20,7 @@ import java.util.List;
 @NoArgsConstructor
 @Table(name = "users")
 @Entity
-public class UserEntity implements UserDetails {
+public class UserEntity extends BaseEntity implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,7 +29,10 @@ public class UserEntity implements UserDetails {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false ,unique = true)
+    @Column(nullable = false)
+    private String nickname;
+
+    @Column(nullable = false, unique = true)
     private String username;
 
     @Column(nullable = false)
@@ -47,9 +51,10 @@ public class UserEntity implements UserDetails {
     private LocalDate endAt; //회원등록 종료일
 
 
-    public static UserEntity of(String name, String username, String password, LocalDate startAt, LocalDate endAt) {
+    public static UserEntity of(String name, String nickname, String username, String password, LocalDate startAt, LocalDate endAt) {
         UserEntity user = new UserEntity();
         user.name = name;
+        user.nickname = nickname;
         user.username = username;
         user.password = password;
         user.role = Role.USER;

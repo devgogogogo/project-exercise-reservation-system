@@ -41,22 +41,34 @@ public class UserService {
     }
 
     //회원 가입
-    public CreateUserResponse signUp(@Valid CreateUserRequest request) {
-        boolean isUser = userRepository.existsByUsername(request.username());
+    public void signupSubmit(@Valid CreateUserRequest form) {
+        boolean isUser = userRepository.existsByUsername(form.username());
+        boolean isNickname = userRepository.existsByNickname(form.nickname());
+        //아이디 중복
         if (isUser) {
             throw new BizException(UserErrorCode.USER_ALREADY_EXISTED);
         }
+        //닉네임 중복
+        if (isNickname) {
+            throw new BizException(UserErrorCode.USER_NICKNAME_ALREADY_EXISTED);
+        }
 
+        // 날짜 범위 검증
+        if (form.startAt() != null && form.endAt() != null
+                && form.startAt().isAfter(form.endAt())) {
+            throw new BizException(UserErrorCode.USER_INVALID_DATE_RANGE);
+        }
 
         UserEntity userEntity = UserEntity.of(
-                request.name(),
-                request.username(),
-                bCryptPasswordEncoder.encode(request.password()),
-                request.startAt(),
-                request.endAt());
+                form.name(),
+                form.username(),
+                form.nickname(),
+                bCryptPasswordEncoder.encode(form.password()),
+                form.startAt(),
+                form.endAt());
 
         UserEntity savedUserEntity = userRepository.save(userEntity);
-        return CreateUserResponse.from(savedUserEntity);
+        CreateUserResponse.from(savedUserEntity);
     }
 
     public LoginUserResponse login(@Valid LoginUserRequest request) {

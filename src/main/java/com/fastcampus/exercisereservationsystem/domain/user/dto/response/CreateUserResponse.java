@@ -7,6 +7,7 @@ import java.time.LocalDate;
 public record CreateUserResponse(
         String name,
         String username,
+        String nickname,
         LocalDate startedAt,
         LocalDate endedAt
 ) {
@@ -14,6 +15,7 @@ public record CreateUserResponse(
         return new CreateUserResponse(
                 userEntity.getName(),
                 userEntity.getUsername(),
+                userEntity.getNickname(),
                 userEntity.getStartAt(),
                 userEntity.getEndAt()
         );
