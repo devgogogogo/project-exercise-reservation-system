@@ -51,10 +51,10 @@
 
 ## 🛠 기술 스택
 
-| 구분 | 기술                                      |
-|:--|:----------------------------------------|
-| **Frontend** | Thyemleaf,Tailwind CSS                  |
-| **Backend** | Spring Boot, Spring Security, JPA ,JWT,GitHub Actions,Docker, Nginx  |
+| 구분 | 기술                                                                          |
+|:--|:----------------------------------------------------------------------------|
+| **Frontend** | Thyemleaf,Tailwind CSS                                                      |
+| **Backend** | JAVA21, Spring Boot, Spring Security, JPA ,JWT,GitHub Actions,Docker, Nginx |
 
 
 ---
