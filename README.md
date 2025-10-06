@@ -56,8 +56,7 @@
 
 ## 📐 와이어프레임
 > 전체 서비스 플로우 및 화면 구성 예시
-
-<img width="1118" height="846" alt="와이어프레임" src="https://github.com/user-attachments/assets/e57eed50-a48b-4c7b-a2ce-01a15a7235c0" />
+<img width="1499" height="1150" alt="와이어 프레임" src="https://github.com/user-attachments/assets/9e1cf8f7-4a0b-4019-9c8a-ea953db5fef8" />
 
 ---
 
