@@ -1,4 +1,4 @@
-package com.fastcampus.exercisereservationsystem.domain.user.views;
+package com.fastcampus.exercisereservationsystem.domain.pageController;
 
 import com.fastcampus.exercisereservationsystem.common.exception.BizException;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.request.CreateUserRequest;
@@ -36,11 +36,22 @@ public class PageController {
         return "signup";
     }
 
+    //로그임 폼
     @GetMapping("/login")
     public String login() {
         return "login";
     }
 
+    //예약 페이지
+    @GetMapping("/reservation")
+    public String reservationForm() {
+        return "reservation";
+    }
+
+    @GetMapping("/notices")
+    public String noticeListPage() {
+        return "notice";              // templates/notice.html
+    }
     /**
      서비스는 예외를 던진다. (throw new BizException(UserErrorCode.…))
      컨트롤러는 그 예외를 받아서 BindingResult에 에러를 매핑하고 폼을 다시 보여준다.

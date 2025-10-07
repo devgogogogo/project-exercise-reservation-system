@@ -45,12 +45,19 @@
 
     <nav class="border-t border-slate-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <ul class="flex gap-6 overflow-x-auto no-scrollbar py-3 text-sm font-semibold">
-                <li><a th:href="@{/notices}"  class="hover:text-sky-700">크로스핏 이란?</a></li>
-                <li><a th:href="@{/booking}"  class="hover:text-sky-700">코치 소개</a></li>
-                <li><a th:href="@{/program}"  class="hover:text-sky-700">문의 사항</a></li>
-                <li><a th:href="@{/my}"       class="hover:text-sky-700">오시는 길</a></li>
-            </ul>
+            <!-- ▼ 수정: 좌측 메뉴 + 우측 환영 문구를 같은 행에 배치 -->
+            <div class="flex items-center justify-between py-3">
+                <ul class="flex gap-6 overflow-x-auto no-scrollbar text-sm font-semibold">
+                    <li><a th:href="@{/notices}"  class="hover:text-sky-700">크로스핏 이란?</a></li>
+                    <li><a th:href="@{/booking}"  class="hover:text-sky-700">코치 소개</a></li>
+                    <li><a th:href="@{/program}"  class="hover:text-sky-700">문의 사항</a></li>
+                    <li><a th:href="@{/my}"       class="hover:text-sky-700">오시는 길</a></li>
+                </ul>
+                <!-- 우측 환영 문구 자리 -->
+                <div id="welcome-box" class="text-sm font-semibold text-slate-700 hidden">
+                    <span id="welcome-text"></span>
+                </div>
+            </div>
         </div>
     </nav>
 </header>
@@ -126,7 +133,7 @@
                     <span class="font-bold">공지사항</span>
                 </div>
             </a>
-            <a th:href="@{/booking}" class="block rounded-2xl border shadow-sm hover:shadow-md transition
+            <a th:href="@{/reservation}"  class="block rounded-2xl border shadow-sm hover:shadow-md transition
                                  hover:ring-2 hover:ring-sky-200">
                 <div class="flex flex-col items-center justify-center p-6 min-h-[120px]">
                     <div class="w-12 h-12 rounded-xl border flex items-center justify-center mb-3">🗓️</div>
@@ -157,6 +164,64 @@
         © <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}"></span> CrossFit Box. All rights reserved.
     </div>
 </footer>
+
+<!-- ▼ 로그인 상태 환영 문구 스크립트 -->
+<script>
+    (function () {
+        const welcomeBox  = document.getElementById('welcome-box');
+        const welcomeText = document.getElementById('welcome-text');
+
+        // 저장 위치/키는 프로젝트에 맞게 조정하세요.
+        let accessToken = localStorage.getItem('accessToken');
+
+        // 사용자 정보 조회 함수
+        async function fetchMe() {
+            if (!accessToken) throw new Error('NO_ACCESS');
+            const res = await fetch('/api/users/me', {
+                headers: { Authorization: `Bearer ${accessToken}` },
+                credentials: 'include' // refresh 쿠키 전략을 쓸 때 재발급 호출에 필요
+            });
+            if (res.status === 401) throw new Error('EXPIRED');
+            if (!res.ok) throw new Error('ME_FAIL');
+            return res.json();
+        }
+
+        // access 만료 시 refresh로 재발급
+        async function tryRefresh() {
+            const res = await fetch('/api/users/refresh', {
+                method: 'POST',
+                credentials: 'include' // refresh를 쿠키로 갖고 있으면 자동 전송
+            });
+            if (!res.ok) throw new Error('REFRESH_FAIL');
+            const body = await res.json();
+            // 서버가 { accessToken: "..." } 으로 내려준다고 가정
+            accessToken = body.accessToken;
+            localStorage.setItem('accessToken', accessToken);
+        }
+
+        (async function run() {
+            try {
+                const me = await fetchMe();
+                welcomeText.textContent = `${me.name}님 어서오세요`;
+                welcomeBox.classList.remove('hidden');
+            } catch (e) {
+                if (e.message === 'EXPIRED') {
+                    try {
+                        await tryRefresh();
+                        const me = await fetchMe();
+                        welcomeText.textContent = `${me.name}님 어서오세요`;
+                        welcomeBox.classList.remove('hidden');
+                    } catch {
+                        // 재발급 실패하면 로그인 문구 숨김 유지
+                        welcomeBox.classList.add('hidden');
+                    }
+                } else {
+                    welcomeBox.classList.add('hidden');
+                }
+            }
+        })();
+    })();
+</script>
 
 </body>
 </html>

@@ -2,6 +2,7 @@ package com.fastcampus.exercisereservationsystem.domain.user.service;
 
 import com.fastcampus.exercisereservationsystem.common.exception.BizException;
 import com.fastcampus.exercisereservationsystem.common.service.JwtService;
+import com.fastcampus.exercisereservationsystem.config.JwtToken;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.request.CreateUserRequest;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.request.LoginUserRequest;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.request.UpdateUserRequest;
@@ -85,9 +86,9 @@ public class UserService {
         UserDetails principal = (UserDetails) authentication.getPrincipal();
 
         // 3) JWT 발급 (JwtService의 시그니처에 맞춰 호출)
-        // 예시: username만 필요하다면
-        String accessToken = jwtService.generateToken(principal.getUsername());
-        return new LoginUserResponse(accessToken);
+        JwtToken jwtToken = jwtService.generateToken(principal.getUsername());
+
+        return new LoginUserResponse(jwtToken.accessToken());
     }
 
 

@@ -15,6 +15,10 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 #  최소 32바이트(256비트) 이상의 랜덤 바이트를 Base64로 인코딩해 넣어라(아래는 샘플)
 jwt:
