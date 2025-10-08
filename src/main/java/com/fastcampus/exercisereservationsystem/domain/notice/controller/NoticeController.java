@@ -9,13 +9,12 @@ import com.fastcampus.exercisereservationsystem.domain.notice.dto.response.Updat
 import com.fastcampus.exercisereservationsystem.domain.notice.service.NoticeService;
 import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
@@ -37,13 +36,41 @@ public class NoticeController {
 
     //공지사항 전체 조회 (페이징처리)
     @GetMapping
-    public ResponseEntity<List<GetNoticeListResponse>> getNoticeList(
+    public ResponseEntity<Page<GetNoticeListResponse>> getNoticeList(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        List<GetNoticeListResponse> list = noticeService.getNoticeList(page,size);
+        Page<GetNoticeListResponse> list = noticeService.getNoticeList(page,size);
         return ResponseEntity.ok().body(list);
     }
+
+//    // (A) 자동 생성 쿼리 방식
+//    // — /api/notices/search/auto?q=keyword&page=1&size=10
+//    @GetMapping()
+//    public ResponseEntity<Page<GetNoticeResponse>> getNotice(
+//            @RequestParam String keyword,
+//            @RequestParam(defaultValue = "1") int page,
+//            @RequestParam(defaultValue = "10") int size
+//    ) {
+//        Page<GetNoticeResponse> responses = noticeService.searchByKeyword(keyword, page, size);
+//        return ResponseEntity.ok().body(responses);
+//    }
+
+    // (B) JPQL 커스텀 쿼리 방식
+    // 예: /api/notices/search/custom?keyword=공지&page=1&size=10
+    @GetMapping()
+    public ResponseEntity<Page<GetNoticeResponse>> searchByKeywordJpql(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<GetNoticeResponse> responses = noticeService.searchByKeywordJpql(keyword, page, size);
+        return ResponseEntity.ok().body(responses);
+    }
+
+
+
+    //(B) JPQL 커스텀 쿼리 방식 — /api/notices/search/custom?q=keyword&page=1&size=10
 
     //공지사항 단건 조회
     @GetMapping("/{noticeId}")
