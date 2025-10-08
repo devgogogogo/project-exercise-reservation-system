@@ -33,7 +33,6 @@ public class NoticeService {
         return CreateNoticeResponse.from(noticeEntity);
     }
 
-
     //공지사항 전체조회
     @Transactional(readOnly = true)
     public Page<GetNoticeListResponse> getNoticeList(int page, int size) {
@@ -44,8 +43,6 @@ public class NoticeService {
         Page<NoticeEntity> noticeList = noticeRepository.findAll(pageable);
         return noticeList.map(GetNoticeListResponse::from);
     }
-    //todo : 검색조회 구현할것 , 성능개선도 고려할것
-
 
     //공지사항 단건 조회
     @Transactional(readOnly = true)
@@ -74,14 +71,6 @@ public class NoticeService {
         }
         noticeRepository.delete(noticeEntity);
     }
-
-//    public Page<GetNoticeResponse> searchByKeyword(String keyword, int page, int size) {
-//        int safePage = Math.max(1, page) -1;
-//        int safeSize = Math.max(1, size);
-//        PageRequest pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "id"));
-//        Page<NoticeEntity> noticeEntityPage = noticeRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword, pageable);
-//        return noticeEntityPage.map(GetNoticeResponse::from);
-//    }
 
     public Page<GetNoticeResponse> searchByKeywordJpql(String keyword, int page, int size) {
         int safePage = Math.max(1, page) - 1;

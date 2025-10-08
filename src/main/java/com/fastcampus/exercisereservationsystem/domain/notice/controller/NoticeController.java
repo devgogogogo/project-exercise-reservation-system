@@ -44,21 +44,9 @@ public class NoticeController {
         return ResponseEntity.ok().body(list);
     }
 
-//    // (A) 자동 생성 쿼리 방식
-//    // — /api/notices/search/auto?q=keyword&page=1&size=10
-//    @GetMapping()
-//    public ResponseEntity<Page<GetNoticeResponse>> getNotice(
-//            @RequestParam String keyword,
-//            @RequestParam(defaultValue = "1") int page,
-//            @RequestParam(defaultValue = "10") int size
-//    ) {
-//        Page<GetNoticeResponse> responses = noticeService.searchByKeyword(keyword, page, size);
-//        return ResponseEntity.ok().body(responses);
-//    }
-
-    // (B) JPQL 커스텀 쿼리 방식
+    //JPQL 커스텀 쿼리 방식
     // 예: /api/notices/search/custom?keyword=공지&page=1&size=10
-    @GetMapping()
+    @GetMapping("/search")
     public ResponseEntity<Page<GetNoticeResponse>> searchByKeywordJpql(
             @RequestParam String keyword,
             @RequestParam(defaultValue = "1") int page,
@@ -68,9 +56,6 @@ public class NoticeController {
         return ResponseEntity.ok().body(responses);
     }
 
-
-
-    //(B) JPQL 커스텀 쿼리 방식 — /api/notices/search/custom?q=keyword&page=1&size=10
 
     //공지사항 단건 조회
     @GetMapping("/{noticeId}")
