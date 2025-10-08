@@ -1,71 +1,71 @@
-<!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>로그인</title>
+<!--<!DOCTYPE html>-->
+<!--<html lang="ko" xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8"/>-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1"/>-->
+<!--    <title>로그인</title>-->
 
-    <!-- Tailwind (CDN + forms 플러그인) -->
-    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
-</head>
-<body class="min-h-screen bg-slate-50">
-<main class="min-h-screen flex items-center justify-center px-4">
-    <div class="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
+<!--    &lt;!&ndash; Tailwind (CDN + forms 플러그인) &ndash;&gt;-->
+<!--    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>-->
+<!--</head>-->
+<!--<body class="min-h-screen bg-slate-50">-->
+<!--<main class="min-h-screen flex items-center justify-center px-4">-->
+<!--    <div class="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">-->
 
-        <!-- 그라데이션 헤더 -->
-        <header class="px-6 py-5 text-white bg-gradient-to-r from-indigo-500 via-sky-500 to-teal-500">
-            <h1 class="text-lg font-bold">로그인</h1>
-            <p class="text-xs mt-1 opacity-90">아이디와 비밀번호를 입력하세요</p>
-        </header>
+<!--        &lt;!&ndash; 그라데이션 헤더 &ndash;&gt;-->
+<!--        <header class="px-6 py-5 text-white bg-gradient-to-r from-indigo-500 via-sky-500 to-teal-500">-->
+<!--            <h1 class="text-lg font-bold">로그인</h1>-->
+<!--            <p class="text-xs mt-1 opacity-90">아이디와 비밀번호를 입력하세요</p>-->
+<!--        </header>-->
 
-        <div class="p-6">
-            <!-- 실패/로그아웃 메시지 -->
-            <div class="mb-3 text-sm space-y-1">
-                <!-- 로그인 실패 시 Spring Security가 ?error 쿼리스트링을 붙여줌 -->
-                <p class="text-red-600" th:if="${param.error}">아이디 또는 비밀번호가 올바르지 않습니다.</p>
-                <!-- 로그아웃 성공 시 ?logout -->
-                <p class="text-emerald-600" th:if="${param.logout}">정상적으로 로그아웃되었습니다.</p>
-            </div>
+<!--        <div class="p-6">-->
+<!--            &lt;!&ndash; 실패/로그아웃 메시지 &ndash;&gt;-->
+<!--            <div class="mb-3 text-sm space-y-1">-->
+<!--                &lt;!&ndash; 로그인 실패 시 Spring Security가 ?error 쿼리스트링을 붙여줌 &ndash;&gt;-->
+<!--                <p class="text-red-600" th:if="${param.error}">아이디 또는 비밀번호가 올바르지 않습니다.</p>-->
+<!--                &lt;!&ndash; 로그아웃 성공 시 ?logout &ndash;&gt;-->
+<!--                <p class="text-emerald-600" th:if="${param.logout}">정상적으로 로그아웃되었습니다.</p>-->
+<!--            </div>-->
 
-            <form th:action="@{/login}" method="post" class="space-y-3" novalidate>
-                <!-- CSRF -->
-                <input type="hidden"
-                       th:if="${_csrf != null}"
-                       th:name="${_csrf.parameterName}"
-                       th:value="${_csrf.token}"/>
+<!--            <form th:action="@{/login}" method="post" class="space-y-3" novalidate>-->
+<!--                &lt;!&ndash; CSRF &ndash;&gt;-->
+<!--                <input type="hidden"-->
+<!--                       th:if="${_csrf != null}"-->
+<!--                       th:name="${_csrf.parameterName}"-->
+<!--                       th:value="${_csrf.token}"/>-->
 
-                <!-- 아이디 -->
-                <div>
-                    <label for="username" class="block text-sm font-semibold">아이디</label>
-                    <input id="username" name="username" type="text" autocomplete="username" required
-                           class="mt-1 block w-full rounded-xl border-slate-300"
-                           placeholder="아이디" autofocus>
-                </div>
+<!--                &lt;!&ndash; 아이디 &ndash;&gt;-->
+<!--                <div>-->
+<!--                    <label for="username" class="block text-sm font-semibold">아이디</label>-->
+<!--                    <input id="username" name="username" type="text" autocomplete="username" required-->
+<!--                           class="mt-1 block w-full rounded-xl border-slate-300"-->
+<!--                           placeholder="아이디" autofocus>-->
+<!--                </div>-->
 
-                <!-- 비밀번호 -->
-                <div>
-                    <label for="password" class="block text-sm font-semibold">비밀번호</label>
-                    <input id="password" name="password" type="password" autocomplete="current-password" required
-                           class="mt-1 block w-full rounded-xl border-slate-300"
-                           placeholder="비밀번호">
-                </div>
+<!--                &lt;!&ndash; 비밀번호 &ndash;&gt;-->
+<!--                <div>-->
+<!--                    <label for="password" class="block text-sm font-semibold">비밀번호</label>-->
+<!--                    <input id="password" name="password" type="password" autocomplete="current-password" required-->
+<!--                           class="mt-1 block w-full rounded-xl border-slate-300"-->
+<!--                           placeholder="비밀번호">-->
+<!--                </div>-->
 
-                <div class="flex items-center justify-between pt-1">
-                    <!-- Spring Security remember-me 기본 파라미터명: remember-me -->
-                    <label class="inline-flex items-center gap-2 text-sm">
-                        <input type="checkbox" name="remember-me" class="rounded">
-                        <span>자동 로그인</span>
-                    </label>
-                    <a th:href="@{/signup}" class="text-sm text-sky-600 hover:underline">회원가입</a>
-                </div>
+<!--                <div class="flex items-center justify-between pt-1">-->
+<!--                    &lt;!&ndash; Spring Security remember-me 기본 파라미터명: remember-me &ndash;&gt;-->
+<!--                    <label class="inline-flex items-center gap-2 text-sm">-->
+<!--                        <input type="checkbox" name="remember-me" class="rounded">-->
+<!--                        <span>자동 로그인</span>-->
+<!--                    </label>-->
+<!--                    <a th:href="@{/signup}" class="text-sm text-sky-600 hover:underline">회원가입</a>-->
+<!--                </div>-->
 
-                <button type="submit"
-                        class="w-full py-3 rounded-xl font-semibold text-white bg-sky-600 hover:bg-sky-700">
-                    로그인
-                </button>
-            </form>
-        </div>
-    </div>
-</main>
-</body>
-</html>
+<!--                <button type="submit"-->
+<!--                        class="w-full py-3 rounded-xl font-semibold text-white bg-sky-600 hover:bg-sky-700">-->
+<!--                    로그인-->
+<!--                </button>-->
+<!--            </form>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</main>-->
+<!--</body>-->
+<!--</html>-->
