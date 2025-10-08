@@ -32,12 +32,14 @@ public class NoticeService {
         return CreateNoticeResponse.from(noticeEntity);
     }
 
+    //todo : 페이징처리할것
     //공지사항 전체조회
     @Transactional(readOnly = true)
     public List<GetNoticeListResponse> getNoticeList() {
         List<NoticeEntity> noticeList = noticeRepository.findAll();
         return noticeList.stream().map(noticeEntity -> GetNoticeListResponse.from(noticeEntity)).toList();
     }
+    //todo : 검색조회 구현할것 , 성능개선도 고려할것
 
     //공지사항 단건 조회
     @Transactional(readOnly = true)

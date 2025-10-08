@@ -42,7 +42,7 @@ public class UserService {
     }
 
     //회원 가입
-    public void signupSubmit(@Valid CreateUserRequest form) {
+    public CreateUserResponse signup(@Valid CreateUserRequest form) {
         boolean isUser = userRepository.existsByUsername(form.username());
         boolean isNickname = userRepository.existsByNickname(form.nickname());
         //아이디 중복
@@ -69,7 +69,7 @@ public class UserService {
                 form.endAt());
 
         UserEntity savedUserEntity = userRepository.save(userEntity);
-        CreateUserResponse.from(savedUserEntity);
+       return CreateUserResponse.from(savedUserEntity);
     }
 
     public LoginUserResponse login(@Valid LoginUserRequest request) {

@@ -2,8 +2,10 @@ package com.fastcampus.exercisereservationsystem.domain.user.controller;
 
 import com.fastcampus.exercisereservationsystem.common.service.JwtService;
 import com.fastcampus.exercisereservationsystem.config.JwtToken;
+import com.fastcampus.exercisereservationsystem.domain.user.dto.request.CreateUserRequest;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.request.LoginUserRequest;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.request.UpdateUserRequest;
+import com.fastcampus.exercisereservationsystem.domain.user.dto.response.CreateUserResponse;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.response.GetUserResponse;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.response.LoginUserResponse;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.response.UpdateUserResponse;
@@ -25,17 +27,12 @@ public class UserController {
     private final UserService userService;
     private final JwtService jwtService;
 
-
-//    //회원생성
-//    @PostMapping("/signup")
-//    public ResponseEntity<CreateUserResponse> signupSubmit(
-//            @Valid @ModelAttribute("createUserForm") CreateUserRequest request,
-//            BindingResult bindingResult,
-//            Model model) {
-//        CreateUserResponse response = userService.signupSubmit(request);
-//        return ResponseEntity.ok().body(response);
-//    }
-
+    //회원가입
+    @PostMapping("/signup")
+    public ResponseEntity<CreateUserResponse> signup(@Valid CreateUserRequest request) {
+        CreateUserResponse response = userService.signup(request);
+        return ResponseEntity.ok().body(response);
+    }
 
     //로그인(최초 발급)
     @PostMapping("/login")
@@ -44,7 +41,7 @@ public class UserController {
         return ResponseEntity.ok().body(response);
     }
 
-    //  재발급 (access 만료 + refresh 유효 시)
+    // 재발급 (access 만료 + refresh 유효 시)
     @PostMapping("/refresh")
     public ResponseEntity<LoginUserResponse> refresh(
             @CookieValue(value = "refreshToken", required = false) String refreshTokenCookie,
@@ -63,7 +60,6 @@ public class UserController {
         JwtToken tokens = jwtService.reissue(refreshToken);
         return ResponseEntity.ok(new LoginUserResponse(tokens.accessToken()));
     }
-
 
     //회원 전체 조회
     @GetMapping
