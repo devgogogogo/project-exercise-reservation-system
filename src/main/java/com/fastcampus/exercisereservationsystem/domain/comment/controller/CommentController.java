@@ -11,9 +11,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@EnableMethodSecurity(prePostEnabled = true)
 @RestController
 @RequestMapping("/api/notices/{noticeId}/comments")
 @RequiredArgsConstructor
@@ -32,7 +34,7 @@ public class CommentController {
         return ResponseEntity.ok().body(response);
     }
 
-    //페이징 조회
+    //댓글조회 (페이징처리)
     @GetMapping
     public ResponseEntity<Page<GetCommentListResponse>> getCommentPage(
             @PathVariable Long noticeId,

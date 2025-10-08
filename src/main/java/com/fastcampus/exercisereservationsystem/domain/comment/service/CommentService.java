@@ -48,7 +48,7 @@ public class CommentService {
     public Page<GetCommentListResponse> getCommentPage(Long noticeId, int page, int size) {
         //방어코드
         //사용자가 ?page=0이나 ?page=-5처럼 이상한 값을 넣으면 그대로 들어 올수 있음
-        int safePage = Math.max(1, page);
+        int safePage = Math.max(1, page) -1;
         int safeSize = Math.max(1, size);
         Pageable pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "id"));
 

@@ -13,6 +13,8 @@ import com.fastcampus.exercisereservationsystem.domain.notice.repository.NoticeR
 import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
 import com.fastcampus.exercisereservationsystem.domain.user.exception.UserErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,11 +34,15 @@ public class NoticeService {
         return CreateNoticeResponse.from(noticeEntity);
     }
 
-    //todo : 페이징처리할것
+
     //공지사항 전체조회
     @Transactional(readOnly = true)
-    public List<GetNoticeListResponse> getNoticeList() {
-        List<NoticeEntity> noticeList = noticeRepository.findAll();
+    public List<GetNoticeListResponse> getNoticeList(int page, int size) {
+
+        int safePage = Math.max(1, page) -1;
+        int safeSize = Math.max(1, size);
+        PageRequest pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "id"));
+        List<NoticeEntity> noticeList = noticeRepository.findAll(pageable).getContent();
         return noticeList.stream().map(noticeEntity -> GetNoticeListResponse.from(noticeEntity)).toList();
     }
     //todo : 검색조회 구현할것 , 성능개선도 고려할것

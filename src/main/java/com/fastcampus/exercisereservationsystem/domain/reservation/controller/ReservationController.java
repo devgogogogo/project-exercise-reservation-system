@@ -6,11 +6,14 @@ import com.fastcampus.exercisereservationsystem.domain.reservation.service.Reser
 import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@EnableMethodSecurity(prePostEnabled = true)
 @RestController
 @RequestMapping("/api/class-schedules/{scheduleId}/reservation")
 @RequiredArgsConstructor
@@ -19,6 +22,7 @@ public class ReservationController {
     private final ReservationService reservationService;
 
     //예약
+    @PreAuthorize("hasRole('USER')")
     @PostMapping
     public ResponseEntity<ReservationResponse> reservation(
             @PathVariable Long scheduleId,
@@ -29,6 +33,7 @@ public class ReservationController {
     }
 
     //예약한 사람들 조회
+    @PreAuthorize("hasRole('USER')")
     @GetMapping
     public ResponseEntity<List<GetReservationListResponse>> getReservationList(
             @PathVariable Long scheduleId
@@ -39,6 +44,7 @@ public class ReservationController {
 
 
     //예약 취소
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/cancel")
     public ResponseEntity<ReservationResponse> cancelReservation(
             @PathVariable Long scheduleId,

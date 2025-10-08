@@ -11,11 +11,13 @@ import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/notices")
@@ -33,10 +35,13 @@ public class NoticeController {
         return ResponseEntity.ok().body(response);
     }
 
-    //공지사항 전체 조회
+    //공지사항 전체 조회 (페이징처리)
     @GetMapping
-    public ResponseEntity<List<GetNoticeListResponse>> getNoticeList() {
-        List<GetNoticeListResponse> list = noticeService.getNoticeList();
+    public ResponseEntity<List<GetNoticeListResponse>> getNoticeList(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        List<GetNoticeListResponse> list = noticeService.getNoticeList(page,size);
         return ResponseEntity.ok().body(list);
     }
 
