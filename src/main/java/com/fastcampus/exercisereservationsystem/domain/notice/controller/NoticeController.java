@@ -56,7 +56,6 @@ public class NoticeController {
         return ResponseEntity.ok().body(responses);
     }
 
-
     //공지사항 단건 조회
     @GetMapping("/{noticeId}")
     public ResponseEntity<GetNoticeResponse> getNotice(@PathVariable Long noticeId) {
