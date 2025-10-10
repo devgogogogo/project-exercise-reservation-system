@@ -1,11 +1,13 @@
 package com.fastcampus.exercisereservationsystem.domain.classSchedule.service;
 
+import com.fastcampus.exercisereservationsystem.common.exception.BizException;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.request.CreateClassScheduleRequest;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.request.UpdateClassScheduleRequest;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.response.CreateClassScheduleResponse;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.response.GetClassScheduleResponse;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.response.UpdateClassScheduleResponse;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.entity.ClassScheduleEntity;
+import com.fastcampus.exercisereservationsystem.domain.classSchedule.exception.ClassScheduleErrorCode;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.repository.ClassScheduleRepository;
 import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
 import com.fastcampus.exercisereservationsystem.domain.user.repository.UserRepository;
@@ -149,11 +151,15 @@ class ClassScheduleServiceTest {
         //Given
         UserEntity userEntity = new UserEntity("이귀현", "닉네임", "test@email.com", "1234", LocalDate.now(), LocalDate.now().plusYears(1));
         userRepository.save(userEntity);
-        CreateClassScheduleRequest request = new CreateClassScheduleRequest("classname1", LocalTime.parse("10:30"), LocalTime.parse("11:30"), LocalDate.parse("2025-10-01"), 12);
-        CreateClassScheduleResponse response = classScheduleService.createClassSchedule(request, userEntity);
+        ClassScheduleEntity classScheduleEntity = new ClassScheduleEntity("classname1", LocalTime.parse("10:30"), LocalTime.parse("11:30"), LocalDate.parse("2025-10-01"), 10, userEntity);
+        ClassScheduleEntity response = classScheduleRepository.save(classScheduleEntity);
         //When
-        classScheduleService.deleteClassSchedule(1L);
+        classScheduleService.deleteClassSchedule(response.getId());
+        boolean exists = classScheduleRepository.findById(response.getId()).isPresent();
+
         //Then
         assertThat(response).isNotNull();
+        assertThat(exists).isFalse();
+
     }
 }
