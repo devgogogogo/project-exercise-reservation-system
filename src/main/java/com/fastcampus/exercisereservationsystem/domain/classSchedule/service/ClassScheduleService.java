@@ -1,11 +1,14 @@
 package com.fastcampus.exercisereservationsystem.domain.classSchedule.service;
 
+import com.fastcampus.exercisereservationsystem.common.exception.BizException;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.request.CreateClassScheduleRequest;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.request.UpdateClassScheduleRequest;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.response.CreateClassScheduleResponse;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.response.GetClassScheduleResponse;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.response.UpdateClassScheduleResponse;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.entity.ClassScheduleEntity;
+import com.fastcampus.exercisereservationsystem.domain.classSchedule.enums.ScheduleStatus;
+import com.fastcampus.exercisereservationsystem.domain.classSchedule.exception.ClassScheduleErrorCode;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.repository.ClassScheduleRepository;
 import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
@@ -37,14 +40,14 @@ public class ClassScheduleService {
     }
     @Transactional
     public UpdateClassScheduleResponse updateClassSchedule(UpdateClassScheduleRequest request,Long classSchedulesId) {
-        ClassScheduleEntity classScheduleEntity = classScheduleRepository.findById(classSchedulesId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다."));
+        ClassScheduleEntity classScheduleEntity = classScheduleRepository.findById(classSchedulesId).orElseThrow(() -> new BizException(ClassScheduleErrorCode.SCHEDULE_NOT_FOUND));
         classScheduleEntity.updateClassSchedule(request.classname(), request.startTime(),request.endTime(),request.date(),request.capacity());
         classScheduleRepository.save(classScheduleEntity);
         return UpdateClassScheduleResponse.from(classScheduleEntity);
     }
     @Transactional
     public void deleteClassSchedule(Long classSchedulesId) {
-        ClassScheduleEntity classScheduleEntity = classScheduleRepository.findById(classSchedulesId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다."));
+        ClassScheduleEntity classScheduleEntity = classScheduleRepository.findById(classSchedulesId).orElseThrow(() -> new BizException(ClassScheduleErrorCode.SCHEDULE_NOT_FOUND));
         classScheduleRepository.delete(classScheduleEntity);
     }
 }
