@@ -50,6 +50,15 @@ public class UserEntity extends BaseEntity implements UserDetails {
     @Column(nullable = false)
     private LocalDate endAt; //회원등록 종료일
 
+    public UserEntity(String name, String nickname, String username, String password, LocalDate startAt, LocalDate endAt) {
+        this.name = name;
+        this.nickname = nickname;
+        this.username = username;
+        this.password = password;
+        this.role = Role.USER;
+        this.startAt = startAt;
+        this.endAt = endAt;
+    }
 
     public static UserEntity of(String name, String nickname, String username, String password, LocalDate startAt, LocalDate endAt) {
         UserEntity user = new UserEntity();

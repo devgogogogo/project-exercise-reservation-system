@@ -1,164 +1,164 @@
-<!--<!doctype html>-->
-<!--<html lang="ko" xmlns:th="http://www.thymeleaf.org">-->
-<!--<head>-->
-<!--    <meta charset="utf-8" />-->
-<!--    <meta name="viewport" content="width=device-width, initial-scale=1" />-->
-<!--    <title>공지 상세</title>-->
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>공지 상세</title>
 
-<!--    &lt;!&ndash; 전달용 메타 &ndash;&gt;-->
-<!--    <meta name="notice-id" th:content="${noticeId}" />-->
-<!--    &lt;!&ndash; (선택) CSRF &ndash;&gt;-->
-<!--    <meta th:if="${_csrf != null}" name="_csrf" th:content="${_csrf.token}" />-->
-<!--    <meta th:if="${_csrf != null}" name="_csrf_header" th:content="${_csrf.headerName}" />-->
+    <!-- 전달용 메타 -->
+    <meta name="notice-id" th:content="${noticeId}" />
+    <!-- (선택) CSRF -->
+    <meta th:if="${_csrf != null}" name="_csrf" th:content="${_csrf.token}" />
+    <meta th:if="${_csrf != null}" name="_csrf_header" th:content="${_csrf.headerName}" />
 
-<!--    <script src="https://cdn.tailwindcss.com"></script>-->
-<!--    <script>tailwind.config={theme:{extend:{colors:{brand:{500:'#5b9cff',600:'#3e7df0'}}}}}</script>-->
-<!--</head>-->
-<!--<body class="min-h-screen bg-slate-50 text-slate-900">-->
-<!--<header class="sticky top-0 z-20 bg-white/80 backdrop-blur border-b border-slate-200">-->
-<!--    <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">-->
-<!--        <h1 class="text-base font-semibold">운동 예약 & 커뮤니티</h1>-->
-<!--        <nav class="flex gap-2">-->
-<!--            <a th:href="@{/}" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100">홈</a>-->
-<!--            <a th:href="@{/notices}" class="px-3 py-1.5 rounded-xl border border-brand-600 bg-brand-600 text-white">공지목록</a>-->
-<!--        </nav>-->
-<!--    </div>-->
-<!--</header>-->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{colors:{brand:{500:'#5b9cff',600:'#3e7df0'}}}}}</script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900">
+<header class="sticky top-0 z-20 bg-white/80 backdrop-blur border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+        <h1 class="text-base font-semibold">운동 예약 & 커뮤니티</h1>
+        <nav class="flex gap-2">
+            <a th:href="@{/}" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100">홈</a>
+            <a th:href="@{/notices}" class="px-3 py-1.5 rounded-xl border border-brand-600 bg-brand-600 text-white">공지목록</a>
+        </nav>
+    </div>
+</header>
 
-<!--<main class="max-w-3xl mx-auto px-6 pt-8 pb-16">-->
-<!--    &lt;!&ndash; 공지 본문 &ndash;&gt;-->
-<!--    <article id="post" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">-->
-<!--        <h2 id="title" class="text-2xl font-bold">제목 로딩중…</h2>-->
-<!--        <div id="meta" class="mt-1 text-sm text-slate-500">작성자 · 날짜</div>-->
-<!--        <hr class="my-4">-->
-<!--        <div id="content" class="prose prose-slate max-w-none">-->
-<!--            내용을 불러오는 중…-->
-<!--        </div>-->
-<!--    </article>-->
+<main class="max-w-3xl mx-auto px-6 pt-8 pb-16">
+    <!-- 공지 본문 -->
+    <article id="post" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <h2 id="title" class="text-2xl font-bold">제목 로딩중…</h2>
+        <div id="meta" class="mt-1 text-sm text-slate-500">작성자 · 날짜</div>
+        <hr class="my-4">
+        <div id="content" class="prose prose-slate max-w-none">
+            내용을 불러오는 중…
+        </div>
+    </article>
 
-<!--    &lt;!&ndash; 댓글 &ndash;&gt;-->
-<!--    <section class="mt-6 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">-->
-<!--        <h3 class="text-lg font-semibold">댓글</h3>-->
-<!--        <div id="comments" class="mt-4 space-y-4">-->
-<!--            &lt;!&ndash; JS 렌더 &ndash;&gt;-->
-<!--        </div>-->
+    <!-- 댓글 -->
+    <section class="mt-6 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <h3 class="text-lg font-semibold">댓글</h3>
+        <div id="comments" class="mt-4 space-y-4">
+            <!-- JS 렌더 -->
+        </div>
 
-<!--        &lt;!&ndash; 댓글 작성 &ndash;&gt;-->
-<!--        <form id="commentForm" class="mt-4 flex gap-2">-->
-<!--            <input id="commentInput" type="text" placeholder="댓글을 입력하세요"-->
-<!--                   class="flex-1 rounded-xl border border-slate-300 px-3 py-2.5 outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-600" />-->
-<!--            <button class="rounded-xl border border-brand-600 bg-brand-600 text-white px-4 py-2.5 hover:brightness-110">등록</button>-->
-<!--        </form>-->
-<!--        <p class="text-xs text-slate-500 mt-2">로그인이 필요한 경우 인증 후 다시 시도하세요.</p>-->
-<!--    </section>-->
-<!--</main>-->
+        <!-- 댓글 작성 -->
+        <form id="commentForm" class="mt-4 flex gap-2">
+            <input id="commentInput" type="text" placeholder="댓글을 입력하세요"
+                   class="flex-1 rounded-xl border border-slate-300 px-3 py-2.5 outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-600" />
+            <button class="rounded-xl border border-brand-600 bg-brand-600 text-white px-4 py-2.5 hover:brightness-110">등록</button>
+        </form>
+        <p class="text-xs text-slate-500 mt-2">로그인이 필요한 경우 인증 후 다시 시도하세요.</p>
+    </section>
+</main>
 
-<!--<script>-->
-<!--    const NOTICE_ID = document.querySelector('meta[name="notice-id"]')?.content;-->
-<!--    const POST_ENDPOINT = `/api/notices/${NOTICE_ID}`;-->
-<!--    const CMT_ENDPOINT  = `/api/notices/${NOTICE_ID}/comments`;-->
-<!--    const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;-->
-<!--    const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;-->
+<script>
+    const NOTICE_ID = document.querySelector('meta[name="notice-id"]')?.content;
+    const POST_ENDPOINT = `/api/notices/${NOTICE_ID}`;
+    const CMT_ENDPOINT  = `/api/notices/${NOTICE_ID}/comments`;
+    const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
 
-<!--    function authHeaders(){-->
-<!--        const h = {};-->
-<!--        const token = localStorage.getItem('accessToken');-->
-<!--        if(token) h['Authorization'] = `Bearer ${token}`;-->
-<!--        if(csrfToken && csrfHeader) h[csrfHeader] = csrfToken;-->
-<!--        return h;-->
-<!--    }-->
+    function authHeaders(){
+        const h = {};
+        const token = localStorage.getItem('accessToken');
+        if(token) h['Authorization'] = `Bearer ${token}`;
+        if(csrfToken && csrfHeader) h[csrfHeader] = csrfToken;
+        return h;
+    }
 
-<!--    // 상세-->
-<!--    async function loadPost(){-->
-<!--        const titleEl = document.getElementById('title');-->
-<!--        const metaEl  = document.getElementById('meta');-->
-<!--        const contentEl = document.getElementById('content');-->
-<!--        try{-->
-<!--            const res = await fetch(POST_ENDPOINT, { headers: { 'Accept':'application/json', ...authHeaders() }});-->
-<!--            if(!res.ok) throw new Error('HTTP '+res.status);-->
-<!--            const n = await res.json();-->
-<!--            titleEl.textContent = n.title || '(제목 없음)';-->
-<!--            const author = n.author || n.writer || '관리자';-->
-<!--            const createdAt = n.createdAt || n.created_at || '';-->
-<!--            metaEl.textContent = `작성자 ${author} · ${createdAt}`;-->
-<!--            // HTML 저장형이면 안전하게 렌더 (서버에서 XSS 필터링 가정)-->
-<!--            if(n.contentHtml){-->
-<!--                contentEl.innerHTML = n.contentHtml;-->
-<!--            }else{-->
-<!--                contentEl.textContent = n.content || '(내용 없음)';-->
-<!--            }-->
-<!--        }catch(e){-->
-<!--            titleEl.textContent = '불러오기 실패';-->
-<!--            contentEl.textContent = e.message;-->
-<!--        }-->
-<!--    }-->
+    // 상세
+    async function loadPost(){
+        const titleEl = document.getElementById('title');
+        const metaEl  = document.getElementById('meta');
+        const contentEl = document.getElementById('content');
+        try{
+            const res = await fetch(POST_ENDPOINT, { headers: { 'Accept':'application/json', ...authHeaders() }});
+            if(!res.ok) throw new Error('HTTP '+res.status);
+            const n = await res.json();
+            titleEl.textContent = n.title || '(제목 없음)';
+            const author = n.author || n.writer || '관리자';
+            const createdAt = n.createdAt || n.created_at || '';
+            metaEl.textContent = `작성자 ${author} · ${createdAt}`;
+            // HTML 저장형이면 안전하게 렌더 (서버에서 XSS 필터링 가정)
+            if(n.contentHtml){
+                contentEl.innerHTML = n.contentHtml;
+            }else{
+                contentEl.textContent = n.content || '(내용 없음)';
+            }
+        }catch(e){
+            titleEl.textContent = '불러오기 실패';
+            contentEl.textContent = e.message;
+        }
+    }
 
-<!--    // 댓글-->
-<!--    function commentRow(c){-->
-<!--        const author = c.author || c.writer || '익명';-->
-<!--        const createdAt = c.createdAt || c.created_at || '';-->
-<!--        const content = c.content || '';-->
-<!--        return `-->
-<!--        <div class="rounded-xl border border-slate-200 p-4">-->
-<!--          <div class="text-sm text-slate-600">${author} · ${createdAt}</div>-->
-<!--          <div class="mt-1">${escapeHtml(content)}</div>-->
-<!--        </div>-->
-<!--      `;-->
-<!--    }-->
+    // 댓글
+    function commentRow(c){
+        const author = c.author || c.writer || '익명';
+        const createdAt = c.createdAt || c.created_at || '';
+        const content = c.content || '';
+        return `
+        <div class="rounded-xl border border-slate-200 p-4">
+          <div class="text-sm text-slate-600">${author} · ${createdAt}</div>
+          <div class="mt-1">${escapeHtml(content)}</div>
+        </div>
+      `;
+    }
 
-<!--    function escapeHtml(s){-->
-<!--        return String(s)-->
-<!--            .replaceAll('&','&amp;')-->
-<!--            .replaceAll('<','&lt;')-->
-<!--            .replaceAll('>','&gt;')-->
-<!--            .replaceAll('"','&quot;')-->
-<!--            .replaceAll("'","&#39;");-->
-<!--    }-->
+    function escapeHtml(s){
+        return String(s)
+            .replaceAll('&','&amp;')
+            .replaceAll('<','&lt;')
+            .replaceAll('>','&gt;')
+            .replaceAll('"','&quot;')
+            .replaceAll("'","&#39;");
+    }
 
-<!--    async function loadComments(){-->
-<!--        const wrap = document.getElementById('comments');-->
-<!--        wrap.innerHTML = `<div class="text-slate-500">불러오는 중…</div>`;-->
-<!--        try{-->
-<!--            const res = await fetch(CMT_ENDPOINT, { headers: { 'Accept':'application/json', ...authHeaders() }});-->
-<!--            if(!res.ok) throw new Error('HTTP '+res.status);-->
-<!--            const data = await res.json();-->
-<!--            const items = Array.isArray(data) ? data : (data.content || data.items || []);-->
-<!--            wrap.innerHTML = items.length ? items.map(commentRow).join('') :-->
-<!--                `<div class="text-slate-500">첫 댓글을 남겨보세요.</div>`;-->
-<!--        }catch(e){-->
-<!--            wrap.innerHTML = `<div class="text-slate-500">댓글을 불러오지 못했습니다. (${e.message})</div>`;-->
-<!--        }-->
-<!--    }-->
+    async function loadComments(){
+        const wrap = document.getElementById('comments');
+        wrap.innerHTML = `<div class="text-slate-500">불러오는 중…</div>`;
+        try{
+            const res = await fetch(CMT_ENDPOINT, { headers: { 'Accept':'application/json', ...authHeaders() }});
+            if(!res.ok) throw new Error('HTTP '+res.status);
+            const data = await res.json();
+            const items = Array.isArray(data) ? data : (data.content || data.items || []);
+            wrap.innerHTML = items.length ? items.map(commentRow).join('') :
+                `<div class="text-slate-500">첫 댓글을 남겨보세요.</div>`;
+        }catch(e){
+            wrap.innerHTML = `<div class="text-slate-500">댓글을 불러오지 못했습니다. (${e.message})</div>`;
+        }
+    }
 
-<!--    // 댓글 등록-->
-<!--    document.getElementById('commentForm').addEventListener('submit', async (ev)=>{-->
-<!--        ev.preventDefault();-->
-<!--        const input = document.getElementById('commentInput');-->
-<!--        const content = input.value.trim();-->
-<!--        if(!content) return;-->
-<!--        try{-->
-<!--            const res = await fetch(CMT_ENDPOINT,{-->
-<!--                method:'POST',-->
-<!--                headers: { 'Content-Type':'application/json', ...authHeaders() },-->
-<!--                body: JSON.stringify({ content })-->
-<!--            });-->
-<!--            if(!res.ok){-->
-<!--                const t = await res.text();-->
-<!--                alert('댓글 등록 실패: ' + (t || res.status));-->
-<!--                return;-->
-<!--            }-->
-<!--            input.value = '';-->
-<!--            await loadComments();-->
-<!--        }catch(e){-->
-<!--            alert('댓글 등록 중 오류: '+e.message);-->
-<!--        }-->
-<!--    });-->
+    // 댓글 등록
+    document.getElementById('commentForm').addEventListener('submit', async (ev)=>{
+        ev.preventDefault();
+        const input = document.getElementById('commentInput');
+        const content = input.value.trim();
+        if(!content) return;
+        try{
+            const res = await fetch(CMT_ENDPOINT,{
+                method:'POST',
+                headers: { 'Content-Type':'application/json', ...authHeaders() },
+                body: JSON.stringify({ content })
+            });
+            if(!res.ok){
+                const t = await res.text();
+                alert('댓글 등록 실패: ' + (t || res.status));
+                return;
+            }
+            input.value = '';
+            await loadComments();
+        }catch(e){
+            alert('댓글 등록 중 오류: '+e.message);
+        }
+    });
 
-<!--    (async function init(){-->
-<!--        if(!NOTICE_ID){ document.getElementById('content').textContent='잘못된 접근입니다.'; return; }-->
-<!--        await loadPost();-->
-<!--        await loadComments();-->
-<!--    })();-->
-<!--</script>-->
-<!--</body>-->
-<!--</html>-->
+    (async function init(){
+        if(!NOTICE_ID){ document.getElementById('content').textContent='잘못된 접근입니다.'; return; }
+        await loadPost();
+        await loadComments();
+    })();
+</script>
+</body>
+</html>

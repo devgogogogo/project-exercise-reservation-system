@@ -18,7 +18,7 @@ public class ProgramEntity extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(,name = "user_id")
+    @JoinColumn(name = "user_id")
     private UserEntity userEntity;
 
     @Column(nullable = false)

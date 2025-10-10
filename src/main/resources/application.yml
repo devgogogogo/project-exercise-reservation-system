@@ -14,7 +14,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
-        format_sql: true
+        format_sql: true # 이건 단순히 로그로 찍히는 SQL을 예쁘게 포맷팅해주는 옵션이다.
   data:
     redis:
       host: localhost

@@ -1,5 +1,6 @@
 package com.fastcampus.exercisereservationsystem.domain.classSchedule.entity;
 
+import com.fastcampus.exercisereservationsystem.common.BaseEntity;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.enums.ScheduleStatus;
 import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
 import jakarta.persistence.*;
@@ -16,7 +17,7 @@ import java.time.LocalTime;
         @Index(name = "ind_schedule_date",columnList = "date")
 })
 @Entity
-public class ClassScheduleEntity {
+public class ClassScheduleEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
