@@ -22,7 +22,7 @@ jobs:
         options: >-
           --health-cmd="mysqladmin ping -h 127.0.0.1 -proot1234"
           --health-interval=10s --health-timeout=5s --health-retries=10
-          --health-start-period=15s   # ✅ 초기화 대기 시간 추가
+          --health-start-period=15s
 
       redis:
         image: redis:7
@@ -44,7 +44,6 @@ jobs:
       - name: Install netcat (for waiting ports)
         run: sudo apt-get update && sudo apt-get install -y netcat-openbsd
 
-      # ✅ 핵심: DB가 완전히 뜰 때까지 기다림
       - name: Wait for MySQL & Redis to be ready
         run: |
           echo "Waiting for MySQL (port 3306)..."
