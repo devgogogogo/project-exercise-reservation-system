@@ -62,8 +62,8 @@ public class UserService {
 
         UserEntity userEntity = UserEntity.of(
                 form.name(),
-                form.username(),
                 form.nickname(),
+                form.username(),
                 bCryptPasswordEncoder.encode(form.password()),
                 form.startAt(),
                 form.endAt());
@@ -93,29 +93,26 @@ public class UserService {
 
 
     //회원 전체 조회
-
     public List<GetUserResponse> getUserList() {
         List<UserEntity> userEntityList = userRepository.findAll();
         return userEntityList.stream().map(userEntity -> GetUserResponse.from(userEntity)).toList();
     }
+
     //회원 단건 조회
-
     public GetUserResponse getUserById(Long userId) {
-
         UserEntity userEntity = getUserEntity(userId);
         return GetUserResponse.from(userEntity);
     }
-    //회원 기간 수정
 
+    //회원 기간 수정
     public UpdateUserResponse updateUserPeriod(String username, UpdateUserRequest request) {
         UserEntity userEntity = userRepository.findByUsername(username).orElseThrow(() -> new BizException(UserErrorCode.USER_NOT_FOUND));
-
         userEntity.updatePeriod(request.startAt(), request.endAt());
         userRepository.save(userEntity);
         return UpdateUserResponse.from(userEntity);
     }
-    //회원 삭제 (추후에 소프르 delete로 바꿀예정)
 
+    //회원 삭제 (추후에 소프르 delete로 바꿀예정)
     public void deleteUser(String username) {
         UserEntity userEntity = userRepository.findByUsername(username).orElseThrow(() -> new BizException(UserErrorCode.USER_NOT_FOUND));
         userRepository.delete(userEntity);

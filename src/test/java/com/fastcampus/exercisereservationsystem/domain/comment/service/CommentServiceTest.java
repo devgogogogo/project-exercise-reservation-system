@@ -107,14 +107,14 @@ class CommentServiceTest {
         Page<GetCommentListResponse> page1 = commentService.getCommentPage(saved.getId(), 1, 2);
 
         //Then
-        assertThat(page1.getTotalElements()).isEqualTo(3);
-        assertThat(page1.getTotalPages()).isEqualTo(2);
-        assertThat(page1.getNumber()).isEqualTo(0); // 0-based
+        assertThat(page1.getTotalElements()).isEqualTo(3); //전체 데이터 개수
+        assertThat(page1.getTotalPages()).isEqualTo(2); //전체 페이지 수 (totalElements / size 계산 결과)
+        assertThat(page1.getNumber()).isEqualTo(0); // 0-based //현재 페이지 번호 (0부터 시작)
         assertThat(page1.getSize()).isEqualTo(2);
-        assertThat(page1.isFirst()).isTrue();
-        assertThat(page1.isLast()).isFalse();
+        assertThat(page1.isFirst()).isTrue(); //현재 페이지가 첫페이지인지 여부
+        assertThat(page1.isLast()).isFalse(); //마지막인지 여부
 
-        assertThat(page1.getContent()).hasSize(2);
+        assertThat(page1.getContent()).hasSize(2);  //한 페이지당 데이터 개수
         assertThat(page1.getContent().get(0).commentId()).isEqualTo(c3.getId());
         assertThat(page1.getContent().get(1).commentId()).isEqualTo(c2.getId());
     }
@@ -149,6 +149,7 @@ class CommentServiceTest {
         noticeRepository.save(noticeEntity);
         CommentEntity commentEntity = new CommentEntity(noticeEntity, userEntity, "댓글");
         CommentEntity savedCommentEntity = commentRepository.save(commentEntity);
+
         //When
         commentRepository.deleteById(savedCommentEntity.getId());
         Optional<CommentEntity> response = commentRepository.findById(savedCommentEntity.getId());

@@ -1,13 +1,11 @@
 package com.fastcampus.exercisereservationsystem.domain.classSchedule.service;
 
-import com.fastcampus.exercisereservationsystem.common.exception.BizException;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.request.CreateClassScheduleRequest;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.request.UpdateClassScheduleRequest;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.response.CreateClassScheduleResponse;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.response.GetClassScheduleResponse;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.response.UpdateClassScheduleResponse;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.entity.ClassScheduleEntity;
-import com.fastcampus.exercisereservationsystem.domain.classSchedule.exception.ClassScheduleErrorCode;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.repository.ClassScheduleRepository;
 import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
 import com.fastcampus.exercisereservationsystem.domain.user.repository.UserRepository;
@@ -68,7 +66,7 @@ class ClassScheduleServiceTest {
         registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
     }
 
-    @DisplayName("[수업스케쥴] 수업 생성")
+    @DisplayName("[수업스케쥴] - 수업 생성")
     @Test
     void createClassSchedule() {
         //Given
@@ -88,7 +86,7 @@ class ClassScheduleServiceTest {
         assertThat(response.capacity()).isEqualTo(12);
     }
 
-    @DisplayName("[수업 스케쥴] 수업 조회")
+    @DisplayName("[수업 스케쥴] - 수업 조회")
     @Test
     void getByDate() {
         //Given
@@ -122,7 +120,7 @@ class ClassScheduleServiceTest {
 
     }
 
-    @DisplayName("[수업 스케쥴] 수업 수정")
+    @DisplayName("[수업 스케쥴] - 수업 수정")
     @Test
     void updateClassSchedule() {
         //Given
@@ -145,7 +143,7 @@ class ClassScheduleServiceTest {
         assertThat(response.capacity()).isEqualTo(12);
     }
 
-    @DisplayName("[수업 스케쥴] 수업 삭제")
+    @DisplayName("[수업 스케쥴] - 수업 삭제")
     @Test
     void deleteClassSchedule() {
         //Given

@@ -7,6 +7,7 @@ import java.time.LocalDate;
 public record GetUserResponse(
         Long id,
         String name,
+        String nickname,
         String username,
         LocalDate startedAt,
         LocalDate endedAt
@@ -15,6 +16,7 @@ public record GetUserResponse(
         return new GetUserResponse(
                 user.getId(),
                 user.getName(),
+                user.getNickname(),
                 user.getUsername(),
                 user.getStartAt(),
                 user.getEndAt()

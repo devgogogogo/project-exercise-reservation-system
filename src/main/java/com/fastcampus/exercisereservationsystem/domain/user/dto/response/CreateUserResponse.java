@@ -6,16 +6,16 @@ import java.time.LocalDate;
 
 public record CreateUserResponse(
         String name,
-        String username,
         String nickname,
+        String username,
         LocalDate startedAt,
         LocalDate endedAt
 ) {
     public static CreateUserResponse from(UserEntity userEntity) {
         return new CreateUserResponse(
                 userEntity.getName(),
-                userEntity.getUsername(),
                 userEntity.getNickname(),
+                userEntity.getUsername(),
                 userEntity.getStartAt(),
                 userEntity.getEndAt()
         );
