@@ -16,12 +16,13 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: root1234
           MYSQL_DATABASE: exercise_reservation
-          MYSQL_ROOT_HOST: '%'         # root 계정 원격 허용 (중요)
+          MYSQL_ROOT_HOST: '%'
         ports:
           - 3306:3306
         options: >-
           --health-cmd="mysqladmin ping -h 127.0.0.1 -proot1234"
           --health-interval=10s --health-timeout=5s --health-retries=10
+          --health-start-period=15s   # ✅ 초기화 대기 시간 추가
 
       redis:
         image: redis:7
@@ -30,6 +31,7 @@ jobs:
         options: >-
           --health-cmd="redis-cli ping"
           --health-interval=10s --health-timeout=5s --health-retries=10
+          --health-start-period=5s
 
     steps:
       - uses: actions/checkout@v4
@@ -39,16 +41,22 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      # nc(네트캣) 없을 수도 있으니 설치
-      - name: Install netcat
+      - name: Install netcat (for waiting ports)
         run: sudo apt-get update && sudo apt-get install -y netcat-openbsd
 
-      # MySQL/Redis 포트 오픈까지 대기 (포트 열릴 때까지 최대 60초)
+      # ✅ 핵심: DB가 완전히 뜰 때까지 기다림
       - name: Wait for MySQL & Redis to be ready
         run: |
+          echo "Waiting for MySQL (port 3306)..."
           for i in {1..30}; do
-            (nc -z 127.0.0.1 3306) && (nc -z 127.0.0.1 6379) && echo "DBs are up!" && break
-            echo "Waiting for MySQL/Redis..."
+            nc -z 127.0.0.1 3306 && echo "MySQL is up!" && break
+            echo "Still waiting for MySQL..."
+            sleep 3
+          done
+          echo "Waiting for Redis (port 6379)..."
+          for i in {1..30}; do
+            nc -z 127.0.0.1 6379 && echo "Redis is up!" && break
+            echo "Still waiting for Redis..."
             sleep 2
           done
 
