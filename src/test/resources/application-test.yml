@@ -1,8 +1,5 @@
 spring:
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/exercise_reservation?serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false
-    username: root
-    password: root1234
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
