@@ -151,7 +151,7 @@ class CommentServiceTest {
         CommentEntity savedCommentEntity = commentRepository.save(commentEntity);
 
         //When
-        commentRepository.deleteById(savedCommentEntity.getId());
+        commentService.deleteComment(userEntity,noticeEntity.getId(),savedCommentEntity.getId());
         Optional<CommentEntity> response = commentRepository.findById(savedCommentEntity.getId());
         boolean exists = commentRepository.findById(savedCommentEntity.getId()).isPresent();
 
