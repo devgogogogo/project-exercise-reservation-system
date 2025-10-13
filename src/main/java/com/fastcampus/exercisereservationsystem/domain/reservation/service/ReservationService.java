@@ -48,7 +48,7 @@ public class ReservationService {
         return ReservationResponse.from(reservationEntity,reservedCount);
     }
 
-
+    //예약한 사람들 조회
     @Transactional
     public List<GetReservationListResponse> getReservationList(Long scheduleId) {
 

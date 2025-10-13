@@ -38,10 +38,10 @@ public interface NoticeRepository extends JpaRepository<NoticeEntity, Long> {
     //(B) JPQL 커스텀 쿼리 방식
     @Query("""
               select n from NoticeEntity n
-              where lower(n.title) like lower(concat('%', :q, '%'))
-                 or lower(n.description) like lower(concat('%', :q, '%'))
+              where lower(n.title) like lower(concat('%', :keyword, '%'))
+                 or lower(n.description) like lower(concat('%', :keyword, '%'))
             """)
-    Page<NoticeEntity> searchByKeyword(String keyword, Pageable pageable);
+    Page<NoticeEntity> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
     //둘다 같은데 학습차원으로 둘다 구현해보았다.
 }

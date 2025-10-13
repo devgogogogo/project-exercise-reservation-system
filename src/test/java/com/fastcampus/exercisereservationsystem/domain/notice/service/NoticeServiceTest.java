@@ -127,11 +127,13 @@ class NoticeServiceTest {
         assertThat(response.description()).isEqualTo("공지사항 내용");
     }
 
+
     @DisplayName("[공지사항] - 검색")
     @Test
     void searchByKeywordJpql() {
         //Given
         UserEntity userEntity = new UserEntity("이귀현", "닉네임", "test@email.com", "1234", LocalDate.now(), LocalDate.now().plusYears(1));
+        userRepository.save(userEntity);
         NoticeEntity n1 = noticeRepository.save(new NoticeEntity("운영 안내", "시스템 점검 예정", userEntity));
         NoticeEntity n2 = noticeRepository.save(new NoticeEntity("점검 공지", "이번 주말 점검 진행", userEntity));  // "공지", "점검" 포함
         NoticeEntity n3 = noticeRepository.save(new NoticeEntity("신규 프로그램 런칭", "신규 강좌 공지 사항 안내", userEntity)); // "공지" 포함
