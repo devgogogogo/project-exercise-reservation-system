@@ -45,11 +45,10 @@ dependencies {
     //redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-    // Testcontainers (JUnit5)
+    // Testcontainers
     testImplementation "org.springframework.boot:spring-boot-testcontainers"
     testImplementation "org.testcontainers:junit-jupiter:1.20.3"
     testImplementation "org.testcontainers:mysql:1.20.3"
-    testImplementation "org.testcontainers:redis:1.20.3"
     // AssertJ
     testImplementation "org.assertj:assertj-core:3.27.4"
     //env
