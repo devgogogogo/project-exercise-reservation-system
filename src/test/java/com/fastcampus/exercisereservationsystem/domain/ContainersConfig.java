@@ -5,20 +5,18 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 @TestConfiguration(proxyBeanMethods = false)
-@Testcontainers
 public class ContainersConfig {
 
+    static final MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0.36");
+    static final GenericContainer<?> redis = new GenericContainer<>("redis:7.2").withExposedPorts(6379);
 
-    @Container
-    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0.36");
-
-    @Container
-    static GenericContainer<?> redis =
-            new GenericContainer<>("redis:7.2").withExposedPorts(6379);
+    // ★ 선(先)기동 — 스프링 컨텍스트가 연결 만들기 전에 반드시 컨테이너를 띄운다
+    static {
+        mysql.start();
+        redis.start();
+    }
 
     @DynamicPropertySource
     static void registerProps(DynamicPropertyRegistry r) {
