@@ -47,12 +47,12 @@ public class NoticeController {
     //JPQL 커스텀 쿼리 방식
     // 예: /api/notices/search/custom?keyword=공지&page=1&size=10
     @GetMapping("/search")
-    public ResponseEntity<Page<GetNoticeResponse>> searchByKeywordJpql(
+    public ResponseEntity<Page<GetNoticeResponse>> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
             @RequestParam String keyword,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Page<GetNoticeResponse> responses = noticeService.searchByKeywordJpql(keyword, page, size);
+        Page<GetNoticeResponse> responses = noticeService.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, page, size);
         return ResponseEntity.ok().body(responses);
     }
 

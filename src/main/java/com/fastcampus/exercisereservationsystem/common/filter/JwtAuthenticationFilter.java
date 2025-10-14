@@ -18,7 +18,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-// JWT 인증 담당
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -32,40 +31,54 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String p = request.getServletPath();
-        return !p.startsWith("/api/");   // API만 검사
+        return !p.startsWith("/api/");
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
 
-        String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (authorization == null || !authorization.startsWith(BEARER_PREFIX)) {
+        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+
+        // ✅ (v) Bearer 토큰 없으면 통과
+        if (header == null || !header.startsWith(BEARER_PREFIX)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        if (authorization != null
-                && authorization.startsWith(BEARER_PREFIX)
-                && SecurityContextHolder.getContext().getAuthentication() == null) {
+        // ✅ (v) 이미 인증된 경우 중복 세팅 방지
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-            String accessToken = authorization.substring(BEARER_PREFIX.length());
+        // ✅ (v) 토큰 추출시 trim
+        String token = header.substring(BEARER_PREFIX.length()).trim();
 
-            // 주석: 토큰 유효성 먼저 검사 (서명/만료 확인)
-            try {
-                if (jwtService.isTokenValid(accessToken)) {
-                    String username = jwtService.extractUsername(accessToken);
-                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                    authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContext context = SecurityContextHolder.createEmptyContext();
-                    context.setAuthentication(authenticationToken);
-                    SecurityContextHolder.setContext(context);
-                }
-            } catch (Exception ex) {
-
+        try {
+            // ✅ (v) 유효성 먼저 검사: 실패 시 401 즉시 반환(이전엔 조용히 삼켰음)
+            if (!jwtService.isTokenValid(token)) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
+                return;
             }
 
+            String username = jwtService.extractUsername(token);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(auth);
+            SecurityContextHolder.setContext(context);
+
+        } catch (Exception e) {
+            // ✅ (v) 예외 발생 시 401 반환(이전엔 빈 catch)
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
+            return;
         }
+
         filterChain.doFilter(request, response);
     }
 }

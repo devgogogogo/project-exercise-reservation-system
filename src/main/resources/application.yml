@@ -2,8 +2,8 @@ spring:
   application:
     name: exercise-reservation-system
   datasource:
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
+    username: app
+    password: app1234
     url: jdbc:mysql://localhost:3309/exercise_reservation
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:

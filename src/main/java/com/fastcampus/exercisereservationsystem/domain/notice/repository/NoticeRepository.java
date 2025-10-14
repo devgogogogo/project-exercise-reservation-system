@@ -3,6 +3,7 @@ package com.fastcampus.exercisereservationsystem.domain.notice.repository;
 import com.fastcampus.exercisereservationsystem.domain.notice.entity.NoticeEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -31,17 +32,12 @@ public interface NoticeRepository extends JpaRepository<NoticeEntity, Long> {
     Optional<NoticeEntity> findByIdWithUser(@Param("id") Long id);
 
 
-    // (A) 자동 생성 쿼리 방식
+
     //키워드 :  제목 + 내용에 부분 일치 (대소문자 무시)
-    Page<NoticeEntity> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String titleKeyword, String descKeyword, Pageable pageable);
-
-    //(B) JPQL 커스텀 쿼리 방식
-    @Query("""
-              select n from NoticeEntity n
-              where lower(n.title) like lower(concat('%', :keyword, '%'))
-                 or lower(n.description) like lower(concat('%', :keyword, '%'))
-            """)
-    Page<NoticeEntity> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
-
-    //둘다 같은데 학습차원으로 둘다 구현해보았다.
+    @EntityGraph(attributePaths = "user") // user 함께 로딩
+    Page<NoticeEntity> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
+            String titleKeyword,
+            String descKeyword,
+            Pageable pageable
+    );
 }

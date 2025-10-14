@@ -72,11 +72,11 @@ public class NoticeService {
         noticeRepository.delete(noticeEntity);
     }
 
-    public Page<GetNoticeResponse> searchByKeywordJpql(String keyword, int page, int size) {
+    public Page<GetNoticeResponse> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String keyword, int page, int size) {
         int safePage = Math.max(1, page) - 1;
         int safeSize = Math.max(1, size);
         PageRequest pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "id"));
-        Page<NoticeEntity> result = noticeRepository.searchByKeyword(keyword, pageable);
+        Page<NoticeEntity> result = noticeRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword, pageable);
         return result.map(GetNoticeResponse::from);
     }
 }
