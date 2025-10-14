@@ -29,7 +29,7 @@ public class UserController {
 
     //회원가입
     @PostMapping("/signup")
-    public ResponseEntity<CreateUserResponse> signup(@Valid CreateUserRequest request) {
+    public ResponseEntity<CreateUserResponse> signup(@Valid @RequestBody CreateUserRequest request) {
         CreateUserResponse response = userService.signup(request);
         return ResponseEntity.ok().body(response);
     }

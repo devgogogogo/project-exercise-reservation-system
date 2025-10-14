@@ -137,7 +137,7 @@ class UserServiceTest {
         //When
         List<GetUserResponse> responses = userService.getUserList();
         //Then
-        assertThat(responses).hasSize(3);
+        assertThat(responses).hasSize(5);  //DevDataConfig 클래스에 2명 만들어놔서 5명임 (관리자1명, 일반유저 1명)
         assertThat(responses.stream().map(GetUserResponse::username).toList())
                 .contains("user1@email.com", "user2@email.com", "user3@email.com");
         assertThat(responses.stream().map(getUserResponse -> getUserResponse.name()).toList())

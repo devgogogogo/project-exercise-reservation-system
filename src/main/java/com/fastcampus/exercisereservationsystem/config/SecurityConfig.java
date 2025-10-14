@@ -95,7 +95,8 @@ public class SecurityConfig {
 
 
                         //유저
-                        .requestMatchers(HttpMethod.POST, "/api/users/login", "/api/users", "/api/users/refresh", "/signup", "/assets/**", "/favicon.ico").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/users/login", "/api/users/signup", "/api/users/refresh").permitAll()
+                        .requestMatchers("/api/users/**").hasRole("ADMIN")
 
                         //또는 더 일반적으로 홈, 정적 리소스(css/js/img)까지 열어줘야 함.
                         .anyRequest().authenticated()
