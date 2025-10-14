@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: exercise-reservation-system
+  datasource:
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    url: jdbc:mysql://localhost:3309/exercise_reservation
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true # 이건 단순히 로그로 찍히는 SQL을 예쁘게 포맷팅해주는 옵션이다.
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+#  최소 32바이트(256비트) 이상의 랜덤 바이트를 Base64로 인코딩해 넣어라(아래는 샘플)
+jwt:
+  secret-key: Y3Jhc2gtc2VydmljZS1zdXBlci1zZXZyZXQta2V5203874yosdhgf
