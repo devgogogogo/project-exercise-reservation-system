@@ -62,6 +62,12 @@
 <img width="1499" height="1150" alt="와이어 프레임" src="https://github.com/user-attachments/assets/9e1cf8f7-4a0b-4019-9c8a-ea953db5fef8" />
 
 ---
+## 🗂 ERD
+
+<img width="1941" height="690" alt="erd" src="https://github.com/user-attachments/assets/edb657b7-3e2c-4e78-8b20-ebb620661e80" />
+
+
+---
 
 ## 🚀 CI/CD 파이프라인
 > 자동 빌드 및 배포 환경 구성
