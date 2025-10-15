@@ -52,6 +52,14 @@ public class NoticeService {
     }
 
     //공지사항 수정
+    public Page<GetNoticeResponse> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String keyword, int page, int size) {
+        int safePage = Math.max(1, page) - 1;
+        int safeSize = Math.max(1, size);
+        PageRequest pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "id"));
+        Page<NoticeEntity> result = noticeRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword, pageable);
+        return result.map(GetNoticeResponse::from);
+    }
+
     @Transactional
     public UpdateNoticeResponse updateNotice(UserEntity userEntity,UpdateNoticeRequest request, Long noticeId) {
         NoticeEntity noticeEntity = noticeRepository.findByIdWithUser(noticeId).orElseThrow(() ->new BizException(NoticeErrorCode.NOTICE_NOT_FOUND));
@@ -70,13 +78,5 @@ public class NoticeService {
             throw new BizException(UserErrorCode.USER_NOT_OWNER);
         }
         noticeRepository.delete(noticeEntity);
-    }
-
-    public Page<GetNoticeResponse> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String keyword, int page, int size) {
-        int safePage = Math.max(1, page) - 1;
-        int safeSize = Math.max(1, size);
-        PageRequest pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "id"));
-        Page<NoticeEntity> result = noticeRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword, pageable);
-        return result.map(GetNoticeResponse::from);
     }
 }

@@ -128,7 +128,7 @@ class NoticeServiceTest {
 
     @DisplayName("[공지사항] - 검색")
     @Test
-    void searchByKeywordJpql() {
+    void findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase() {
         //Given
         UserEntity userEntity = new UserEntity("이귀현", "닉네임", "test@email.com", "1234", LocalDate.now(), LocalDate.now().plusYears(1));
         userRepository.save(userEntity);
@@ -138,7 +138,7 @@ class NoticeServiceTest {
         NoticeEntity n4 = noticeRepository.save(new NoticeEntity("주말 휴무", "휴무 안내 드립니다", userEntity));
         NoticeEntity n5 = noticeRepository.save(new NoticeEntity("이벤트 공지", "가을 이벤트 진행", userEntity)); // "공지" 포함
         //When
-        Page<GetNoticeResponse> page1 = noticeService.searchByKeywordJpql("공지", 1, 3);
+        Page<GetNoticeResponse> page1 = noticeService.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase("공지", 1, 3);
         //Then
         assertThat(page1).isNotNull();
         assertThat(page1.getNumber()).isEqualTo(0);       // safePage = 1 - 1 = 0, 0번 페이지
