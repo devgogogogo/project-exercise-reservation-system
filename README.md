@@ -75,7 +75,8 @@
 
 ## 🏗 시스템 아키텍처
 
-<img width="829" height="479" alt="시스템 아키텍처" src="https://github.com/user-attachments/assets/4a6bf3c7-b806-4d4d-ad5a-6318695b7848" />
+<img width="2504" height="1527" alt="시스템 아키텍처" src="https://github.com/user-attachments/assets/ddc9dc66-a1cb-466b-a89f-3dfb49a87672" />
+
 
 ---
 
