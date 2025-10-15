@@ -33,6 +33,7 @@ public interface NoticeRepository extends JpaRepository<NoticeEntity, Long> {
 
 
 
+    //todo : 트러블 슈팅 하나 작성하자
     //키워드 :  제목 + 내용에 부분 일치 (대소문자 무시)
     @EntityGraph(attributePaths = "user") // user 함께 로딩
     Page<NoticeEntity> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(

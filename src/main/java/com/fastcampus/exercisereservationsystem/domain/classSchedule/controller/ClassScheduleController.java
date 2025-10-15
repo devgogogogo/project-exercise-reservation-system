@@ -34,7 +34,6 @@ public class ClassScheduleController {
         CreateClassScheduleResponse response = classScheduleService.createClassSchedule(request,userEntity);
         return ResponseEntity.ok().body(response);
     }
-
     @GetMapping
     public ResponseEntity<List<GetClassScheduleResponse>> getByDate(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         List<GetClassScheduleResponse> responses = classScheduleService.getByDate(date);
