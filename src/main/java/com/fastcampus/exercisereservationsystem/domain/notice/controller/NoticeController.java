@@ -15,7 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
+//@EnableMethodSecurity의 기능 @PreAuthorize, @PostAuthorize, @PreFilter, @PostFilter 사용 가능하도록 활성화.
 @EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 @RestController

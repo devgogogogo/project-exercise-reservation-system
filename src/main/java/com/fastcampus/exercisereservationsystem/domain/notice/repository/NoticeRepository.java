@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface NoticeRepository extends JpaRepository<NoticeEntity, Long> {
@@ -31,9 +32,6 @@ public interface NoticeRepository extends JpaRepository<NoticeEntity, Long> {
     @Query("select n from NoticeEntity n join fetch n.user where n.id = :id")
     Optional<NoticeEntity> findByIdWithUser(@Param("id") Long id);
 
-
-
-    //todo : 트러블 슈팅 하나 작성하자
     //키워드 :  제목 + 내용에 부분 일치 (대소문자 무시)
     @EntityGraph(attributePaths = "user") // user 함께 로딩
     Page<NoticeEntity> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
@@ -41,4 +39,12 @@ public interface NoticeRepository extends JpaRepository<NoticeEntity, Long> {
             String descKeyword,
             Pageable pageable
     );
+
+    //todo : test 용 (@EntityGraph)
+    @EntityGraph(attributePaths = "user")
+    Optional<NoticeEntity> findOneById(Long id);
+
+    //todo : test 용 (@Query)
+    @Query("select n from NoticeEntity n join fetch n.user where n.id = :id")
+    Optional<NoticeEntity> findByIdWithQuery(@Param("id") Long id);
 }
