@@ -4,9 +4,14 @@ import com.fastcampus.exercisereservationsystem.domain.notice.entity.NoticeEntit
 
 public record GetNoticeListResponse(
         Long noticeId,
-        String title
+        String title,
+        String name
 ) {
     public static GetNoticeListResponse from(NoticeEntity entity) {
-        return new GetNoticeListResponse(entity.getId(),entity.getTitle());
+        return new GetNoticeListResponse(
+                entity.getId(),
+                entity.getTitle(),
+                entity.getUser().getName()
+        );
     }
 }

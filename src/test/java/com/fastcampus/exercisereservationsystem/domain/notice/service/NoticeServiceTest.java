@@ -138,7 +138,7 @@ class NoticeServiceTest {
         NoticeEntity n4 = noticeRepository.save(new NoticeEntity("주말 휴무", "휴무 안내 드립니다", userEntity));
         NoticeEntity n5 = noticeRepository.save(new NoticeEntity("이벤트 공지", "가을 이벤트 진행", userEntity)); // "공지" 포함
         //When
-        Page<GetNoticeResponse> page1 = noticeService.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase("공지", 1, 3);
+        Page<GetNoticeListResponse> page1 = noticeService.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase("공지", 1, 3);
         //Then
         assertThat(page1).isNotNull();
         assertThat(page1.getNumber()).isEqualTo(0);       // safePage = 1 - 1 = 0, 0번 페이지

@@ -17,8 +17,8 @@ spring:
         format_sql: true # 이건 단순히 로그로 찍히는 SQL을 예쁘게 포맷팅해주는 옵션이다.
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${SPRING_DATA_REDIS_HOST}
+      port: ${SPRING_DATA_REDIS_PORT}
 
 #  최소 32바이트(256비트) 이상의 랜덤 바이트를 Base64로 인코딩해 넣어라(아래는 샘플)
 jwt:

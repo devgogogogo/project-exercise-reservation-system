@@ -21,15 +21,12 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
-
 @RequiredArgsConstructor
 @Service
 public class NoticeService {
 
     private final NoticeRepository noticeRepository;
     private final RedisTemplate<String,String> redisTemplate;
-
 
     // ✅ ObjectMapper (JSON 직렬화/역직렬화용)
     private final ObjectMapper om = new ObjectMapper()
@@ -44,10 +41,9 @@ public class NoticeService {
         return CreateNoticeResponse.from(noticeEntity);
     }
 
-    //공지사항 전체조회
+    //todo : page 일반조회 ✅ 응답속도 test
     @Transactional(readOnly = true)
     public Page<GetNoticeListResponse> getNoticeList(int page, int size) {
-
         int safePage = Math.max(1, page) -1;
         int safeSize = Math.max(1, size);
         PageRequest pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "id"));
@@ -55,69 +51,20 @@ public class NoticeService {
         return noticeList.map(GetNoticeListResponse::from);
     }
 
-    //todo : 단일 조회 test(일반) ✅
+    //todo : page @EntityGraph 이용한 조회 응답속도 test ✅
     @Transactional(readOnly = true)
-    public GetNoticeResponse getById(Long noticeId) {
-        NoticeEntity noticeEntity = noticeRepository.findById(noticeId).orElseThrow(() -> new BizException(NoticeErrorCode.NOTICE_NOT_FOUND));
-        return GetNoticeResponse.from(noticeEntity);
-    }
-
-    //todo : @EntityGraph 이용한 조회 tset (N+1) ✅
-    @Transactional(readOnly = true)
-    public GetNoticeResponse getByEntityGraph(Long noticeId) {
-        NoticeEntity noticeEntity = noticeRepository.findOneById(noticeId).orElseThrow(() -> new BizException(NoticeErrorCode.NOTICE_NOT_FOUND));
-        return GetNoticeResponse.from(noticeEntity);
-    }
-
-    //todo : @Query 이용한 단일 조회 test (N+1) ✅
-    @Transactional(readOnly = true)
-    public GetNoticeResponse getByQuery(Long noticeId) {
-        NoticeEntity noticeEntity = noticeRepository.findByIdWithQuery(noticeId).orElseThrow(() -> new BizException(NoticeErrorCode.NOTICE_NOT_FOUND));
-        return GetNoticeResponse.from(noticeEntity);
-    }
-
-    //todo : redis 를 활용한 조회 test ✅
-    @Transactional(readOnly = true)
-    public GetNoticeResponse getByRedis(Long noticeId) {
-        String key = "notice:" + noticeId;
-
-        // 1️⃣ 캐시 조회
-        String cashed = redisTemplate.opsForValue().get(key);
-        if (cashed != null) { //값이 있으면 리턴해줘라
-            try {
-                return om.readValue(cashed, GetNoticeResponse.class);
-            } catch (Exception e) {
-                System.out.println("캐시 역직렬화 실패: " + e.getMessage());
-            }
-        }
-        // 2️⃣ DB 조회 (N+1 해결 쿼리)
-        NoticeEntity noticeEntity = noticeRepository.findByIdWithQuery(noticeId).orElseThrow(() -> new BizException(NoticeErrorCode.NOTICE_NOT_FOUND));
-        GetNoticeResponse dto = GetNoticeResponse.from(noticeEntity);
-
-        // 3️⃣ 캐시 저장
-        try {
-            String json = om.writeValueAsString(dto);
-            redisTemplate.opsForValue().set(key, json, Duration.ofMinutes(10));
-        } catch (Exception e) {
-            System.out.println("캐시 저장 실패: " + e.getMessage());
-        }
-        return dto;
-    }
-
-    //공지사항 단건 조회
-    @Transactional(readOnly = true)
-    public GetNoticeResponse getNotice(Long noticeId) {
-        NoticeEntity noticeEntity = noticeRepository.findByIdWithUser(noticeId).orElseThrow(() -> new BizException(NoticeErrorCode.NOTICE_NOT_FOUND));
-        return new GetNoticeResponse(noticeEntity.getId(), noticeEntity.getUser().getUsername(), noticeEntity.getTitle(), noticeEntity.getDescription());
-    }
-
-    @Transactional(readOnly = true)
-    public Page<GetNoticeResponse> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String keyword, int page, int size) {
+    public Page<GetNoticeListResponse> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String keyword, int page, int size) {
         int safePage = Math.max(1, page) - 1;
         int safeSize = Math.max(1, size);
         PageRequest pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "id"));
         Page<NoticeEntity> result = noticeRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword, pageable);
-        return result.map(GetNoticeResponse::from);
+        return result.map(GetNoticeListResponse::from);
+    }
+
+    @Transactional(readOnly = true)
+    public GetNoticeResponse getNotice(Long noticeId) {
+        NoticeEntity noticeEntity = noticeRepository.findByIdWithUser(noticeId).orElseThrow(() -> new BizException(NoticeErrorCode.NOTICE_NOT_FOUND));
+        return new GetNoticeResponse(noticeEntity.getId(), noticeEntity.getUser().getUsername(), noticeEntity.getTitle(), noticeEntity.getDescription());
     }
 
     @Transactional

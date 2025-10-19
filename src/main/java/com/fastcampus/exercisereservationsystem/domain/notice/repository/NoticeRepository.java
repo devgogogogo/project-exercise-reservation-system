@@ -32,6 +32,12 @@ public interface NoticeRepository extends JpaRepository<NoticeEntity, Long> {
     @Query("select n from NoticeEntity n join fetch n.user where n.id = :id")
     Optional<NoticeEntity> findByIdWithUser(@Param("id") Long id);
 
+    @Query(
+            value = "select n from NoticeEntity n join fetch n.user",
+            countQuery = "select count(n) from NoticeEntity n"
+    )
+    Page<NoticeEntity> findPageWithUser(Pageable pageable);
+
     //키워드 :  제목 + 내용에 부분 일치 (대소문자 무시)
     @EntityGraph(attributePaths = "user") // user 함께 로딩
     Page<NoticeEntity> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
@@ -40,11 +46,17 @@ public interface NoticeRepository extends JpaRepository<NoticeEntity, Long> {
             Pageable pageable
     );
 
+    @Query(value = "select n from NoticeEntity n join fetch n.user",
+            countQuery = "select count(n) from NoticeEntity n")
+    Page<NoticeEntity> findAllWithUserByQuery(Pageable pageable);
+
     //todo : test 용 (@EntityGraph)
     @EntityGraph(attributePaths = "user")
-    Optional<NoticeEntity> findOneById(Long id);
+    List<NoticeEntity> findByTitleContainingIgnoreCase(String titleKeyword);
 
-    //todo : test 용 (@Query)
+    //todo : test 용
     @Query("select n from NoticeEntity n join fetch n.user where n.id = :id")
     Optional<NoticeEntity> findByIdWithQuery(@Param("id") Long id);
+
+
 }
