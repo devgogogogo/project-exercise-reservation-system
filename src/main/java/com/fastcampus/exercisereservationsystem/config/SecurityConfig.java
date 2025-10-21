@@ -75,6 +75,10 @@ public class SecurityConfig {
         //이부분은 다시 수정해야할 부분, 이런저런 기능이 있다는걸 기억하기 위해 써 놓은거
         http
                 .authorizeHttpRequests(request -> request
+                                //페이지
+                                .requestMatchers(HttpMethod.GET, "/", "/login", "/logout", "/signup", "/css/**", "/js/**", "/images/**").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/login").permitAll()
+
                                 //수업스케쥴
                                 .requestMatchers(HttpMethod.GET, "/api/classSchedules/**").hasAnyRole("ADMIN", "USER")
                                 .requestMatchers("/api/classSchedules/**").hasRole("ADMIN")
@@ -106,7 +110,7 @@ public class SecurityConfig {
 
         http.cors(Customizer.withDefaults());
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-        http.csrf(csrf -> csrf.disable());
+        http.csrf(csrf -> csrf.ignoringRequestMatchers("login"));
         http.addFilterBefore(jwtExceptionFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         http.formLogin(AbstractHttpConfigurer::disable);
