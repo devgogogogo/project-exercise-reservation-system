@@ -8,7 +8,9 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @Getter
-@Table(name = "notices")
+@Table(name = "notices",
+        indexes = {@Index(name = "ind_notice_title",columnList = "title")}
+)
 @Entity
 public class NoticeEntity extends BaseEntity {
     @Id

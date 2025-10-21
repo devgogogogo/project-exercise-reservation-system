@@ -7,8 +7,11 @@ services:
     ports:
       - "8080:8080"                  # 컨테이너 → 로컬 접근 가능
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/exercise_reservation
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
@@ -33,10 +36,11 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-proot"]
-      interval: 5s
-      timeout: 3s
-      retries: 20
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-proot"] #10초마다 mysqladmin ping 명령을 실행해서 응답을 확인
+      interval: 10s  # 10초 간격으로 검사
+      timeout: 5s   # 5초 안에 응답 없으면 실패로 간주
+      retries: 10   # 10번연속 실패 하면 unhealthy
+      start_period: 15s #처음 컨테이너가 시작되고 15초 동안은 검사 유예
 
   redis:
     image: redis:7-alpine
@@ -48,9 +52,10 @@ services:
       - redis_data:/data
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
-      interval: 5s
-      timeout: 3s
-      retries: 20
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
 
   # ✅ k6 성능 테스트용 추가
   k6:
