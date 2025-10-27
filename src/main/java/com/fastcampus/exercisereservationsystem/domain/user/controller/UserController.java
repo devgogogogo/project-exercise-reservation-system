@@ -5,15 +5,14 @@ import com.fastcampus.exercisereservationsystem.config.JwtToken;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.request.CreateUserRequest;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.request.LoginUserRequest;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.request.UpdateUserRequest;
-import com.fastcampus.exercisereservationsystem.domain.user.dto.response.CreateUserResponse;
-import com.fastcampus.exercisereservationsystem.domain.user.dto.response.GetUserResponse;
-import com.fastcampus.exercisereservationsystem.domain.user.dto.response.LoginUserResponse;
-import com.fastcampus.exercisereservationsystem.domain.user.dto.response.UpdateUserResponse;
+import com.fastcampus.exercisereservationsystem.domain.user.dto.response.*;
+import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
 import com.fastcampus.exercisereservationsystem.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -39,6 +38,18 @@ public class UserController {
     public ResponseEntity<LoginUserResponse> login(@Valid @RequestBody LoginUserRequest request) {
         LoginUserResponse response = userService.login(request);
         return ResponseEntity.ok().body(response);
+    }
+    // 로그인된 본인 정보 조회
+    @GetMapping("/me")
+    public ResponseEntity<UserProfileResponse> getMyInfo(
+            @AuthenticationPrincipal UserEntity userEntity
+    ) {
+        if (userEntity == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        UserProfileResponse response = UserProfileResponse.from(userEntity);
+        return ResponseEntity.ok(response);
     }
 
     // 재발급 (access 만료 + refresh 유효 시)
@@ -76,9 +87,9 @@ public class UserController {
     }
 
     // 회원 정보중 연장으로 인한 기간 수정
-    @PutMapping("/{username}")
-    public ResponseEntity<UpdateUserResponse> updateUserPeriod(@PathVariable String username, @RequestBody UpdateUserRequest request) {
-        UpdateUserResponse response = userService.updateUserPeriod(username, request);
+    @PutMapping("/{userId}")
+    public ResponseEntity<UpdateUserResponse> updateUserPeriod(@PathVariable Long userId, @RequestBody UpdateUserRequest request) {
+        UpdateUserResponse response = userService.updateUserPeriod(userId, request);
         return ResponseEntity.ok().body(response);
     }
 

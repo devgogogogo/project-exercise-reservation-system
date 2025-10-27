@@ -1,124 +1,208 @@
-<!--<!doctype html>-->
-<!--<html lang="ko" xmlns:th="http://www.thymeleaf.org">-->
-<!--<head>-->
-<!--    <meta charset="utf-8" />-->
-<!--    <meta name="viewport" content="width=device-width, initial-scale=1" />-->
-<!--    <title>공지사항</title>-->
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>공지사항</title>
 
-<!--    &lt;!&ndash; (선택) CSRF: 사용 중일 때만 렌더 &ndash;&gt;-->
-<!--    <meta th:if="${_csrf != null}" name="_csrf" th:content="${_csrf.token}" />-->
-<!--    <meta th:if="${_csrf != null}" name="_csrf_header" th:content="${_csrf.headerName}" />-->
+    <!-- (선택) CSRF: 사용 중일 때만 렌더 -->
+    <meta th:if="${_csrf != null}" name="_csrf" th:content="${_csrf.token}" />
+    <meta th:if="${_csrf != null}" name="_csrf_header" th:content="${_csrf.headerName}" />
 
-<!--    <script src="https://cdn.tailwindcss.com"></script>-->
-<!--    <script>tailwind.config={theme:{extend:{colors:{brand:{500:'#5b9cff',600:'#3e7df0'}}}}}</script>-->
-<!--</head>-->
-<!--<body class="min-h-screen bg-slate-50 text-slate-900">-->
-<!--&lt;!&ndash; 헤더 &ndash;&gt;-->
-<!--<header class="sticky top-0 z-20 bg-white/80 backdrop-blur border-b border-slate-200">-->
-<!--    <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">-->
-<!--        <h1 class="text-base font-semibold">운동 예약 & 커뮤니티</h1>-->
-<!--        <nav class="flex gap-2">-->
-<!--            <a th:href="@{/}" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100">홈</a>-->
-<!--            <a th:href="@{/reservation}" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100">수업예약</a>-->
-<!--            <a th:href="@{/notices}" class="px-3 py-1.5 rounded-xl border border-brand-600 bg-brand-600 text-white">공지사항</a>-->
-<!--        </nav>-->
-<!--    </div>-->
-<!--</header>-->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{colors:{brand:{500:'#5b9cff',600:'#3e7df0'}}}}}</script>
+</head>
 
-<!--<main class="max-w-7xl mx-auto px-6 pt-8 pb-16">-->
-<!--    <section class="mb-5">-->
-<!--        <h2 class="text-2xl font-bold">공지사항</h2>-->
-<!--        <p class="text-slate-500 mt-1">제목을 클릭하면 상세 내용을 볼 수 있어요.</p>-->
-<!--    </section>-->
+<body class="min-h-screen bg-slate-50 text-slate-900">
+<header class="sticky top-0 z-20 bg-white/80 backdrop-blur border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+        <h1 class="text-base font-semibold">운동 예약 & 커뮤니티</h1>
+        <nav class="flex gap-2">
+            <a th:href="@{/}" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100">홈</a>
+            <a th:href="@{/reservation}" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100">수업예약</a>
+            <a th:href="@{/notices}" class="px-3 py-1.5 rounded-xl border border-brand-600 bg-brand-600 text-white">공지사항</a>
+        </nav>
+    </div>
+</header>
 
-<!--    &lt;!&ndash; 검색바 &ndash;&gt;-->
-<!--    <section class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">-->
-<!--        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">-->
-<!--            <div class="sm:col-span-3">-->
-<!--                <input id="keyword" type="text" placeholder="제목/작성자 검색"-->
-<!--                       class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-600" />-->
-<!--            </div>-->
-<!--            <div class="flex gap-2">-->
-<!--                <button id="resetBtn" class="flex-1 rounded-xl border border-slate-300 bg-white px-3 py-2.5 hover:bg-slate-100">초기화</button>-->
-<!--                <button id="searchBtn" class="flex-1 rounded-xl border border-brand-600 bg-brand-600 px-3 py-2.5 text-white hover:brightness-110">검색</button>-->
-<!--            </div>-->
-<!--        </div>-->
-<!--    </section>-->
+<main class="max-w-7xl mx-auto px-6 pt-8 pb-16">
+    <!-- ====== 공지 목록 헤더 영역 ====== -->
+    <section class="mb-5">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-2xl font-bold">공지사항</h2>
+            <a id="writeBtn" href="/notices/new"
+               class="hidden px-3 py-2 rounded-xl bg-sky-600 text-white hover:bg-sky-700">글쓰기</a>
+        </div>
+        <p class="text-slate-500 mt-1">제목을 클릭하면 상세 내용을 볼 수 있어요.</p>
+    </section>
 
-<!--    &lt;!&ndash; 목록 &ndash;&gt;-->
-<!--    <section id="listWrap" class="mt-5" aria-live="polite">-->
-<!--        <div id="list" class="divide-y divide-slate-200 bg-white border border-slate-200 rounded-2xl overflow-hidden">-->
-<!--            &lt;!&ndash; JS 렌더 &ndash;&gt;-->
-<!--        </div>-->
-<!--        <div id="empty" class="hidden text-center text-slate-500 py-10">등록된 공지가 없습니다.</div>-->
-<!--    </section>-->
-<!--</main>-->
+    <!-- 검색바 -->
+    <section class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div class="sm:col-span-3">
+                <input id="keyword" type="text" placeholder="제목/내용 검색"
+                       class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-600" />
+            </div>
+            <div class="flex gap-2">
+                <button id="resetBtn" class="flex-1 rounded-xl border border-slate-300 bg-white px-3 py-2.5 hover:bg-slate-100">초기화</button>
+                <button id="searchBtn" class="flex-1 rounded-xl border border-brand-600 bg-brand-600 px-3 py-2.5 text-white hover:brightness-110">검색</button>
+            </div>
+        </div>
+    </section>
 
-<!--<script>-->
-<!--    const ENDPOINT = '/api/notices';-->
-<!--    const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;-->
-<!--    const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;-->
+    <!-- 목록 -->
+    <section id="listWrap" class="mt-5" aria-live="polite">
+        <div id="list" class="divide-y divide-slate-200 bg-white border border-slate-200 rounded-2xl overflow-hidden">
+            <!-- JS 렌더 -->
+        </div>
 
-<!--    function authHeaders(){-->
-<!--        const h = {};-->
-<!--        const token = localStorage.getItem('accessToken');-->
-<!--        if(token) h['Authorization'] = `Bearer ${token}`;-->
-<!--        if(csrfToken && csrfHeader) h[csrfHeader] = csrfToken;-->
-<!--        return h;-->
-<!--    }-->
+        <!-- 비어있을 때: 첫 글쓰기 버튼 포함 -->
+        <div id="empty" class="hidden text-center text-slate-600 py-10">
+            등록된 공지가 없습니다.
+            <div class="mt-4">
+                <a id="emptyWriteBtn" href="/notices/new"
+                   class="hidden inline-block px-4 py-2 rounded-xl bg-sky-600 text-white hover:bg-sky-700">
+                    첫 글 쓰기
+                </a>
+            </div>
+        </div>
 
-<!--    function row(item){-->
-<!--        const title = item.title || '(제목 없음)';-->
-<!--        const createdAt = item.createdAt || item.created_at || '';-->
-<!--        const author = item.author || item.writer || '관리자';-->
-<!--        return `-->
-<!--        <a href="/notices/${item.id}" class="block px-4 py-4 hover:bg-slate-50">-->
-<!--          <div class="flex items-center gap-2">-->
-<!--            <h3 class="font-medium">${title}</h3>-->
-<!--            ${item.pinned ? '<span class="text-xs rounded border px-1.5 py-0.5">고정</span>' : ''}-->
-<!--          </div>-->
-<!--          <div class="mt-1 text-xs text-slate-500">작성자 ${author} · ${createdAt}</div>-->
-<!--        </a>-->
-<!--      `;-->
-<!--    }-->
+        <!-- 페이징 -->
+        <div class="mt-4 flex items-center justify-center gap-2">
+            <button id="prevBtn" class="px-3 py-2 rounded-lg border bg-white hover:bg-slate-50 disabled:opacity-40" disabled>이전</button>
+            <span id="pageInfo" class="text-sm text-slate-600">1 / 1</span>
+            <button id="nextBtn" class="px-3 py-2 rounded-lg border bg-white hover:bg-slate-50 disabled:opacity-40" disabled>다음</button>
+        </div>
+    </section>
+</main>
 
-<!--    function renderList(items){-->
-<!--        const list = document.getElementById('list');-->
-<!--        const empty = document.getElementById('empty');-->
-<!--        if(!items || items.length === 0){-->
-<!--            list.innerHTML = '';-->
-<!--            empty.classList.remove('hidden');-->
-<!--            return;-->
-<!--        }-->
-<!--        empty.classList.add('hidden');-->
-<!--        list.innerHTML = items.map(row).join('');-->
-<!--    }-->
+<script>
+    const API_LIST = '/api/notices';
+    const API_SEARCH = '/api/notices/search';
 
-<!--    async function search(){-->
-<!--        const kw = document.getElementById('keyword').value.trim();-->
-<!--        const params = new URLSearchParams();-->
-<!--        if(kw) params.append('q', kw);-->
-<!--        // 나중에 page/size 붙이기 쉬움-->
-<!--        const url = params.toString() ? `${ENDPOINT}?${params}` : ENDPOINT;-->
+    const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
 
-<!--        const list = document.getElementById('list');-->
-<!--        list.innerHTML = Array.from({length:6})-->
-<!--            .map(()=>`<div class="px-4 py-4 animate-pulse text-slate-400">로딩 중…</div>`).join('');-->
-<!--        try{-->
-<!--            const res = await fetch(url, { headers: { 'Accept':'application/json', ...authHeaders() }});-->
-<!--            if(!res.ok) throw new Error('HTTP '+res.status);-->
-<!--            const data = await res.json();-->
-<!--            const items = Array.isArray(data) ? data : (data.content || data.items || []);-->
-<!--            renderList(items);-->
-<!--        }catch(e){-->
-<!--            list.innerHTML = `<div class="px-4 py-6 text-center text-slate-500">목록을 가져오지 못했습니다. (${e.message})</div>`;-->
-<!--        }-->
-<!--    }-->
+    function authHeaders(){
+        const h = {};
+        const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+        if (token) h['Authorization'] = `Bearer ${token}`;
+        if (csrfToken && csrfHeader) h[csrfHeader] = csrfToken;
+        return h;
+    }
 
-<!--    document.getElementById('searchBtn').addEventListener('click', search);-->
-<!--    document.getElementById('resetBtn').addEventListener('click', ()=>{ document.getElementById('keyword').value=''; search(); });-->
+    // 현재 페이지 상태
+    const state = { page: 1, size: 10, totalPages: 1, keyword: '' };
 
-<!--    (function init(){ search(); })();-->
-<!--</script>-->
-<!--</body>-->
-<!--</html>-->
+    function escapeHtml(s){
+        return String(s ?? '').replace(/[&<>"'`=\/]/g, c => ({
+            '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'
+        }[c]));
+    }
+
+    function row(item){
+        const id = item.noticeId;
+        const title = item.title || '(제목 없음)';
+        const author = item.name || '작성자';
+        return `
+      <a href="/notices/${id}" class="block px-4 py-4 hover:bg-slate-50">
+        <div class="flex items-center gap-2">
+          <h3 class="font-medium">${escapeHtml(title)}</h3>
+        </div>
+        <div class="mt-1 text-xs text-slate-500">작성자 ${escapeHtml(author)}</div>
+      </a>
+    `;
+    }
+
+    function renderList(pageData){
+        const list = document.getElementById('list');
+        const empty = document.getElementById('empty');
+
+        const items = pageData?.content ?? [];
+        state.totalPages = Math.max(1, pageData?.totalPages ?? 1);
+
+        document.getElementById('prevBtn').disabled = (state.page <= 1);
+        document.getElementById('nextBtn').disabled = (state.page >= state.totalPages);
+        document.getElementById('pageInfo').textContent = `${state.page} / ${state.totalPages}`;
+
+        if (!items || items.length === 0){
+            list.innerHTML = '';
+            empty.classList.remove('hidden');
+            return;
+        }
+        empty.classList.add('hidden');
+        list.innerHTML = items.map(row).join('');
+    }
+
+    // 관리자면 글쓰기 버튼 보이기
+    (async function showWriteIfAdmin(){
+        try {
+            const res = await fetch('/api/users/me', { headers: authHeaders(), credentials: 'include' });
+            if (!res.ok) return; // 비로그인/토큰만료/권한없음이면 숨김 유지
+
+            const me = await res.json();
+            const role = (me.role || '').toUpperCase();
+            const roles = Array.isArray(me.roles) ? me.roles.map(String) : [];
+            const authorities = Array.isArray(me.authorities)
+                ? me.authorities.map(a => (a.authority || a).toString())
+                : [];
+
+            const isAdmin =
+                role === 'ADMIN' || role === 'ROLE_ADMIN' ||
+                roles.includes('ADMIN') || roles.includes('ROLE_ADMIN') ||
+                authorities.includes('ROLE_ADMIN');
+
+            if (isAdmin) {
+                document.getElementById('writeBtn')?.classList.remove('hidden');
+                document.getElementById('emptyWriteBtn')?.classList.remove('hidden');
+            }
+        } catch (_) { /* 무시 */ }
+    })();
+
+    async function fetchPage(){
+        const list = document.getElementById('list');
+        list.innerHTML = Array.from({length:6})
+            .map(()=>`<div class="px-4 py-4 animate-pulse text-slate-400">로딩 중…</div>`).join('');
+
+        const params = new URLSearchParams({ page: String(state.page), size: String(state.size) });
+        let url;
+        if (state.keyword && state.keyword.trim().length > 0){
+            params.append('keyword', state.keyword.trim());
+            url = `${API_SEARCH}?${params.toString()}`;
+        } else {
+            url = `${API_LIST}?${params.toString()}`;
+        }
+
+        try{
+            const res = await fetch(url, { headers: { 'Accept':'application/json', ...authHeaders() }});
+            if(!res.ok) throw new Error('HTTP '+res.status);
+            const data = await res.json();
+            renderList(data);
+        } catch(e){
+            list.innerHTML = `<div class="px-4 py-6 text-center text-slate-500">목록을 가져오지 못했습니다. (${e.message})</div>`;
+        }
+    }
+
+    // 이벤트
+    document.getElementById('searchBtn').addEventListener('click', ()=>{
+        state.keyword = document.getElementById('keyword').value || '';
+        state.page = 1;
+        fetchPage();
+    });
+    document.getElementById('resetBtn').addEventListener('click', ()=>{
+        document.getElementById('keyword').value = '';
+        state.keyword = '';
+        state.page = 1;
+        fetchPage();
+    });
+    document.getElementById('prevBtn').addEventListener('click', ()=>{
+        if (state.page > 1){ state.page -= 1; fetchPage(); }
+    });
+    document.getElementById('nextBtn').addEventListener('click', ()=>{
+        if (state.page < state.totalPages){ state.page += 1; fetchPage(); }
+    });
+
+    (function init(){ fetchPage(); })();
+</script>
+</body>
+</html>

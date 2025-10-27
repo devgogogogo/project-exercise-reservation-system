@@ -105,8 +105,8 @@ public class UserService {
     }
 
     //회원 기간 수정
-    public UpdateUserResponse updateUserPeriod(String username, UpdateUserRequest request) {
-        UserEntity userEntity = userRepository.findByUsername(username).orElseThrow(() -> new BizException(UserErrorCode.USER_NOT_FOUND));
+    public UpdateUserResponse updateUserPeriod(Long userId, UpdateUserRequest request) {
+        UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new BizException(UserErrorCode.USER_NOT_FOUND));
         userEntity.updatePeriod(request.startAt(), request.endAt());
         userRepository.save(userEntity);
         return UpdateUserResponse.from(userEntity);

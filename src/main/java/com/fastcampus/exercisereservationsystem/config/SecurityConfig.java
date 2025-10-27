@@ -65,6 +65,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://127.0.0.1:3000"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PATCH", "DELETE"));
         configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", configuration);
         return source;
@@ -72,49 +73,70 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        //이부분은 다시 수정해야할 부분, 이런저런 기능이 있다는걸 기억하기 위해 써 놓은거
         http
-                .authorizeHttpRequests(request -> request
-                                //페이지
-                                .requestMatchers(HttpMethod.GET, "/", "/login", "/logout", "/signup", "/css/**", "/js/**", "/images/**").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/login").permitAll()
+                .authorizeHttpRequests(auth -> auth
+                        // ===== 뷰 페이지 (정적/화면) =====
+                        .requestMatchers(HttpMethod.GET, "/", "/login", "/signup",
+                                "/reservation", "/notices", "/notices/*", "/notices/new",
+                                "/css/**", "/js/**", "/images/**").permitAll()
 
-                                //수업스케쥴
-                                .requestMatchers(HttpMethod.GET, "/api/classSchedules/**").hasAnyRole("ADMIN", "USER")
-                                .requestMatchers("/api/classSchedules/**").hasRole("ADMIN")
+                        // ===== 공지 API =====
+                        // 조회는 공개
+                        .requestMatchers(HttpMethod.GET, "/api/notices", "/api/notices/search", "/api/notices/*").permitAll()
+                        // 생성/수정/삭제는 관리자만
+                        .requestMatchers(HttpMethod.POST,   "/api/notices").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/api/notices/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/notices/*").hasRole("ADMIN")
 
-                                // 댓글 --> 유저 ,관리자
-                                .requestMatchers("/api/notices/*/comments/**").hasAnyRole("ADMIN", "USER")
+                        // ✅ 로그인한 사용자면 누구나 접근 가능 (/api/users/me)
+                        .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
 
-                                //공지사항
-                                .requestMatchers(HttpMethod.GET, "/api/notices/**").hasAnyRole("USER", "ADMIN")
-                                .requestMatchers("/api/notices/**").hasRole("ADMIN")
+                        // ===== 수업 스케줄 =====
+                        .requestMatchers(HttpMethod.GET, "/api/classSchedules/**").hasAnyRole("ADMIN","USER")
+                        .requestMatchers("/api/classSchedules/**").hasRole("ADMIN")
 
-                                //예약
-                                .requestMatchers(HttpMethod.GET, "/api/class-schedules/*/reservation/**").hasRole("USER")
+                        // ===== 댓글 =====
+                        .requestMatchers("/api/notices/*/comments/**").hasAnyRole("ADMIN","USER")
 
-                                //프로그램
-                                .requestMatchers(HttpMethod.GET, "/api/program", "/api/program/**").hasAnyRole("USER", "ADMIN")
-                                .requestMatchers("/api/program", "/api/program/**").hasRole("ADMIN")
+                        // ===== 예약 =====
+                        .requestMatchers(HttpMethod.GET, "/api/class-schedules/*/reservation/**").hasRole("USER")
 
+                        // ===== 프로그램 =====
+                        .requestMatchers(HttpMethod.GET, "/api/program", "/api/program/**").hasAnyRole("USER","ADMIN")
+                        .requestMatchers("/api/program", "/api/program/**").hasRole("ADMIN")
 
-                                //유저
-                                .requestMatchers(HttpMethod.POST, "/api/users/login", "/api/users/signup", "/api/users/refresh").permitAll()
-                                .requestMatchers("/api/users/**").hasRole("ADMIN")
-                                .requestMatchers("/api/test/**", "/swagger-ui/**", "/v3/api-docs/**", "/actuator/health").permitAll()
+                        // ===== 유저 =====
+                        // 로그인/회원가입/토큰 재발급은 모두 허용
+                        .requestMatchers(HttpMethod.POST, "/api/users/login", "/api/users/signup", "/api/users/refresh").permitAll()
+                        // 👇 여기가 중요: 로그인한 사용자 누구나 /me 접근 가능
+                        // 나머지 /api/users/** 는 ADMIN
+                        .requestMatchers("/api/users/**").hasRole("ADMIN")
 
-                                //또는 더 일반적으로 홈, 정적 리소스(css/js/img)까지 열어줘야 함.
-                                .anyRequest().authenticated()
-                        //테스트 용
-                );
+                        // 문서/헬스체크
+                        .requestMatchers("/api/test/**", "/swagger-ui/**", "/v3/api-docs/**", "/actuator/health").permitAll()
 
-        http.cors(Customizer.withDefaults());
-        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-        http.csrf(csrf -> csrf.ignoringRequestMatchers("login"));
-        http.addFilterBefore(jwtExceptionFilter, UsernamePasswordAuthenticationFilter.class);
-        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        http.formLogin(AbstractHttpConfigurer::disable);
-        http.httpBasic(AbstractHttpConfigurer::disable);
+                        // 그 외
+                        .anyRequest().authenticated()
+                )
+
+                // CORS (아래 corsConfigurationSource())
+                .cors(Customizer.withDefaults())
+
+                // 세션 X
+                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // CSRF: API는 JWT stateless 이므로 전체 제외 (또는 "/api/**"만 제외)
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
+
+                // 필터 순서: 예외 먼저, 인증 다음
+                .addFilterBefore(jwtExceptionFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+
+                // 폼/베이직 인증 비활성화 (JSON 로그인)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable);
+
         return http.build();
     }
+
 }

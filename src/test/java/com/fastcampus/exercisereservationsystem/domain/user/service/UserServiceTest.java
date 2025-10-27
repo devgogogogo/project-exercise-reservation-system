@@ -167,7 +167,7 @@ class UserServiceTest {
         UserEntity saved = userRepository.save(new UserEntity("유저1", "닉네임1", "user1@email.com", "1234", LocalDate.parse("2025-10-01"), LocalDate.parse("2025-10-30")));
         UpdateUserRequest request = new UpdateUserRequest(LocalDate.parse("2025-11-01"), LocalDate.parse("2025-11-30"));
         //When
-        UpdateUserResponse response = userService.updateUserPeriod(saved.getUsername(), request);
+        UpdateUserResponse response = userService.updateUserPeriod(saved.getId(), request);
         //Then
         assertThat(response).isNotNull();
         assertThat(response.username()).isEqualTo("user1@email.com");

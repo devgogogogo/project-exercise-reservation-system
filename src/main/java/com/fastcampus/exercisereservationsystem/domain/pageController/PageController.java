@@ -47,11 +47,34 @@ public class PageController {
     public String reservationForm() {
         return "reservation";
     }
-
+    // 공지 목록 페이지 (혹시 /notices 접근 시 HTML 직접 열리게 하려면)
     @GetMapping("/notices")
     public String noticeListPage() {
         return "notice";              // templates/notice.html
     }
+
+    // 공지 작성 페이지
+    @GetMapping("/notices/create")
+    public String noticeCreatePage() {
+        return "notice-create"; // 👉 notice-create.html
+    }
+
+    // 공지 상세 페이지
+    @GetMapping("/notices/{noticeId}")
+    public String noticeDetailPage() {
+        return "notice-detail"; // 👉 notice-detail.html
+    }
+
+    @GetMapping("/program")
+    public String programPage() {
+        return "program";
+    }
+
+    @GetMapping("/my")
+    public String myPage() {
+        return "my";
+    }
+
     /**
      서비스는 예외를 던진다. (throw new BizException(UserErrorCode.…))
      컨트롤러는 그 예외를 받아서 BindingResult에 에러를 매핑하고 폼을 다시 보여준다.
