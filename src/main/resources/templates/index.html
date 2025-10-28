@@ -8,7 +8,7 @@
     <!-- Tailwind (개발용 CDN) -->
     <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
     <script>
-        tailwind.config = { theme: { extend: {} } }
+        tailwind.config = {theme: {extend: {}}}
     </script>
 
     <style>
@@ -23,9 +23,20 @@
             --ring: #3ea1d5;
             --border: #e2e8f0;
         }
-        body { background: linear-gradient(135deg, #f8fafc, var(--bg)); color: var(--text); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        body {
+            background: linear-gradient(135deg, #f8fafc, var(--bg));
+            color: var(--text);
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-900 bg-gradient-to-b from-sky-50 to-indigo-50">
@@ -44,7 +55,7 @@
 
         <!-- 우측: 로그인/회원가입 or 로그아웃 -->
         <nav class="flex items-center gap-4">
-            <a id="login-link"  th:href="@{/login}"  class="text-sm font-medium hover:text-sky-700">로그인</a>
+            <a id="login-link" th:href="@{/login}" class="text-sm font-medium hover:text-sky-700">로그인</a>
             <a id="signup-link" th:href="@{/signup}" class="text-sm font-medium hover:underline">회원가입</a>
             <button id="logout-btn"
                     class="hidden text-sm font-medium px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-100">
@@ -81,75 +92,58 @@
             </div>
         </div>
     </section>
-
-    <!-- 공지 & WOD -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-6 grid gap-6 md:grid-cols-2">
-        <!-- 공지사항 카드 -->
-        <div class="bg-white rounded-2xl shadow p-6 border border-slate-100 relative before:content-[''] before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-gradient-to-r before:from-sky-400 before:to-indigo-400">
-            <h3 class="text-lg font-extrabold mb-4">공지 사항</h3>
-            <ul class="divide-y">
-                <li class="py-3 flex items-center justify-between" th:each="n : ${notices}">
-                    <a th:href="@{'/notices/' + ${n.id}}" class="truncate hover:underline" th:text="${n.title}">10월 공지사항</a>
-                    <span class="text-sm text-gray-400 shrink-0 ml-4" th:text="${#temporals.format(n.date, 'yyyy.MM.dd')}">2025.09.29</span>
-                </li>
-                <li class="py-3 flex items-center justify-between" th:if="${#lists.isEmpty(notices)}">
-                    <span class="text-gray-500">등록된 공지가 없습니다.</span>
-                </li>
-            </ul>
-            <div class="mt-4 text-right">
-                <a th:href="@{/notices}" class="text-sm font-semibold text-sky-700 hover:underline">전체 보기</a>
-            </div>
-        </div>
-
-        <!-- 오늘의 운동 카드 -->
-        <div class="bg-white rounded-2xl shadow p-6 border border-slate-100 relative before:content-[''] before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-gradient-to-r before:from-sky-400 before:to-indigo-400">
-            <h3 class="text-lg font-extrabold mb-4">오늘의 운동 (WOD)</h3>
-            <ul class="divide-y">
-                <li class="py-3 flex items-center justify-between" th:each="w : ${wods}">
-                    <a th:href="@{'/wod/' + ${w.id}}" class="truncate hover:underline" th:text="${w.title}">
-                        Strength: Back Squat 5×5 / Metcon: 12’ AMRAP
-                    </a>
-                    <span class="text-sm text-gray-400 shrink-0 ml-4" th:text="${#temporals.format(w.date, 'yyyy.MM.dd')}">2025.09.29</span>
-                </li>
-                <li class="py-3 flex items-center justify-between" th:if="${#lists.isEmpty(wods)}">
-                    <span class="text-gray-500">등록된 WOD가 없습니다.</span>
-                </li>
-            </ul>
-            <div class="mt-4 text-right">
-                <a th:href="@{/wod}" class="text-sm font-semibold text-sky-700 hover:underline">전체 보기</a>
-            </div>
-        </div>
-    </section>
-
-    <!-- 네모 메뉴 -->
+    <!-- 네모 메뉴 (5칸 버전) -->
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <a th:href="@{/notices}" class="block rounded-2xl border shadow-sm hover:shadow-md transition hover:ring-2 hover:ring-sky-200">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4"> <!-- ✅ 변경: md:grid-cols-5 -->
+
+            <!-- 공지사항 -->
+            <a th:href="@{/notices}"
+               class="block rounded-2xl border shadow-sm hover:shadow-md transition hover:ring-2 hover:ring-sky-200">
                 <div class="flex flex-col items-center justify-center p-6 min-h-[120px]">
                     <div class="w-12 h-12 rounded-xl border flex items-center justify-center mb-3">📢</div>
                     <span class="font-bold">공지사항</span>
                 </div>
             </a>
-            <a th:href="@{/reservation}" class="block rounded-2xl border shadow-sm hover:shadow-md transition hover:ring-2 hover:ring-sky-200">
+
+            <!-- 예약하기 -->
+            <a th:href="@{/classSchedule-calendar}"
+               class="block rounded-2xl border shadow-sm hover:shadow-md transition hover:ring-2 hover:ring-emerald-200">
+                <div class="flex flex-col items-center justify-center p-6 min-h-[120px]">
+                    <div class="w-12 h-12 rounded-xl border flex items-center justify-center mb-3">✅</div>
+                    <span class="font-bold">예약 생성(관리자전용)</span>
+                </div>
+            </a>
+
+            <!-- 실시간 예약 -->
+            <a th:href="@{/classSchedule-list}"
+               class="block rounded-2xl border shadow-sm hover:shadow-md transition hover:ring-2 hover:ring-sky-200">
                 <div class="flex flex-col items-center justify-center p-6 min-h-[120px]">
                     <div class="w-12 h-12 rounded-xl border flex items-center justify-center mb-3">🗓️</div>
-                    <span class="font-bold">수업 예약</span>
+                    <span class="font-bold">실시간 예약목록</span>
                 </div>
             </a>
-            <a th:href="@{/my}" class="block rounded-2xl border shadow-sm hover:shadow-md transition hover:ring-2 hover:ring-sky-200">
-                <div class="flex flex-col items-center justify-center p-6 min-h-[120px]">
-                    <div class="w-12 h-12 rounded-xl border flex items-center justify-center mb-3">👤</div>
-                    <span class="font-bold">내 정보</span>
-                </div>
-            </a>
-            <a th:href="@{/program}" class="block rounded-2xl border shadow-sm hover:shadow-md transition hover:ring-2 hover:ring-sky-200">
+
+            <!-- 프로그램 -->
+            <a th:href="@{/program}"
+               class="block rounded-2xl border shadow-sm hover:shadow-md transition hover:ring-2 hover:ring-sky-200">
                 <div class="flex flex-col items-center justify-center p-6 min-h-[120px]">
                     <div class="w-12 h-12 rounded-xl border flex items-center justify-center mb-3">🏋️</div>
                     <span class="font-bold">프로그램</span>
                 </div>
             </a>
+            <!-- 내 정보 -->
+            <a th:href="@{/my}"
+               class="block rounded-2xl border shadow-sm hover:shadow-md transition hover:ring-2 hover:ring-sky-200">
+                <div class="flex flex-col items-center justify-center p-6 min-h-[120px]">
+                    <div class="w-12 h-12 rounded-xl border flex items-center justify-center mb-3">👤</div>
+                    <span class="font-bold">내 정보</span>
+                </div>
+            </a>
+
+
         </div>
     </section>
+
 </main>
 
 <!-- FOOTER -->
@@ -161,18 +155,20 @@
 
 <!-- ▼ 로그인 상태 환영 문구/버튼 토글 -->
 <script>
-    const welcomeBox  = document.getElementById('welcome-box');
+    const welcomeBox = document.getElementById('welcome-box');
     const welcomeText = document.getElementById('welcome-text');
-    const loginLink   = document.getElementById('login-link');
-    const signupLink  = document.getElementById('signup-link');
-    const logoutBtn   = document.getElementById('logout-btn');
+    const loginLink = document.getElementById('login-link');
+    const signupLink = document.getElementById('signup-link');
+    const logoutBtn = document.getElementById('logout-btn');
 
     function getAccessToken() {
         return localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
     }
-    function setAccessToken(token, remember=true) {
+
+    function setAccessToken(token, remember = true) {
         (remember ? localStorage : sessionStorage).setItem('accessToken', token);
     }
+
     function clearAccessToken() {
         localStorage.removeItem('accessToken');
         sessionStorage.removeItem('accessToken');
@@ -181,7 +177,7 @@
     async function fetchMe(accessToken) {
         if (!accessToken) throw new Error('NO_ACCESS');
         const res = await fetch('/api/users/me', {
-            headers: { Authorization: `Bearer ${accessToken}` },
+            headers: {Authorization: `Bearer ${accessToken}`},
             credentials: 'include'
         });
         if (res.status === 401) throw new Error('EXPIRED');
@@ -190,7 +186,7 @@
     }
 
     async function tryRefresh() {
-        const res = await fetch('/api/users/refresh', { method: 'POST', credentials: 'include' });
+        const res = await fetch('/api/users/refresh', {method: 'POST', credentials: 'include'});
         if (!res.ok) throw new Error('REFRESH_FAIL');
         const body = await res.json(); // { accessToken: "..." }
         setAccessToken(body.accessToken, true);
@@ -204,6 +200,7 @@
         signupLink.classList.add('hidden');
         logoutBtn.classList.remove('hidden');
     }
+
     function showLoggedOutUI() {
         welcomeBox.classList.add('hidden');
         loginLink.classList.remove('hidden');

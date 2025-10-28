@@ -91,15 +91,20 @@ public class SecurityConfig {
                         // ✅ 로그인한 사용자면 누구나 접근 가능 (/api/users/me)
                         .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
 
-                        // ===== 수업 스케줄 =====
+                        // ============ 수업 스케줄 ============
                         .requestMatchers(HttpMethod.GET, "/api/classSchedules/**").hasAnyRole("ADMIN","USER")
                         .requestMatchers("/api/classSchedules/**").hasRole("ADMIN")
 
-                        // ===== 댓글 =====
+                        // ============ 댓글 ============
                         .requestMatchers("/api/notices/*/comments/**").hasAnyRole("ADMIN","USER")
 
-                        // ===== 예약 =====
+                        // ============= 예약 ============
                         .requestMatchers(HttpMethod.GET, "/api/class-schedules/*/reservation/**").hasRole("USER")
+                        //예약생성 달력, 생성폼
+                        .requestMatchers(HttpMethod.GET, "/classSchedule-calendar","/classSchedule-create").hasRole("ADMIN")
+                        //예약목록 조회
+                        .requestMatchers(HttpMethod.GET, "/classSchedule-list").hasAnyRole("ADMIN","USER")
+
 
                         // ===== 프로그램 =====
                         .requestMatchers(HttpMethod.GET, "/api/program", "/api/program/**").hasAnyRole("USER","ADMIN")

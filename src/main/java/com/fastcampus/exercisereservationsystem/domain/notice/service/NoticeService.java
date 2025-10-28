@@ -64,7 +64,7 @@ public class NoticeService {
     @Transactional(readOnly = true)
     public GetNoticeResponse getNotice(Long noticeId) {
         NoticeEntity noticeEntity = noticeRepository.findByIdWithUser(noticeId).orElseThrow(() -> new BizException(NoticeErrorCode.NOTICE_NOT_FOUND));
-        return new GetNoticeResponse(noticeEntity.getId(), noticeEntity.getUser().getUsername(), noticeEntity.getTitle(), noticeEntity.getDescription());
+        return new GetNoticeResponse(noticeEntity.getId(), noticeEntity.getUser().getNickname(), noticeEntity.getTitle(), noticeEntity.getDescription(),noticeEntity.getModifiedAt());
     }
 
     @Transactional

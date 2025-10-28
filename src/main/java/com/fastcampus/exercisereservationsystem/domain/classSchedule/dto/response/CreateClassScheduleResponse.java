@@ -7,6 +7,7 @@ import java.time.LocalTime;
 
 public record CreateClassScheduleResponse(
         String classname,
+        String description,
         LocalTime startTime,
         LocalTime endTime,
         LocalDate date,
@@ -16,6 +17,7 @@ public record CreateClassScheduleResponse(
     public static CreateClassScheduleResponse from(ClassScheduleEntity entity) {
         return new CreateClassScheduleResponse(
                 entity.getClassName(),
+                entity.getDescription(),
                 entity.getStartTime(),
                 entity.getEndTime(),
                 entity.getDate(),

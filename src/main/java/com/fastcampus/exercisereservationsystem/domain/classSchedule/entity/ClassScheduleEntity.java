@@ -27,6 +27,9 @@ public class ClassScheduleEntity extends BaseEntity {
     private String className;
 
     @Column(nullable = false)
+    private String description;
+
+    @Column(nullable = false)
     private LocalTime startTime; //시간시간
 
     @Column(nullable = false)
@@ -45,8 +48,9 @@ public class ClassScheduleEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private UserEntity user; //개설하는건 ADMIN 관리자가 개설하는거임
 
-    public ClassScheduleEntity(String className, LocalTime startTime, LocalTime endTime, LocalDate date, Integer capacity, UserEntity user) {
+    public ClassScheduleEntity(String className, String description,LocalTime startTime, LocalTime endTime, LocalDate date, Integer capacity, UserEntity user) {
         this.className = className;
+        this.description = description;
         this.startTime = startTime;
         this.endTime = endTime;
         this.date = date;
@@ -55,8 +59,9 @@ public class ClassScheduleEntity extends BaseEntity {
         this.user = user;
     }
 
-    public void updateClassSchedule(String className, LocalTime startTime, LocalTime endTime, LocalDate date, Integer capacity) {
+    public void updateClassSchedule(String className, String description,LocalTime startTime, LocalTime endTime, LocalDate date, Integer capacity) {
         this.className = className;
+        this.description = description;
         this.startTime = startTime;
         this.endTime = endTime;
         this.date = date;

@@ -8,9 +8,11 @@ import com.fastcampus.exercisereservationsystem.domain.user.dto.request.UpdateUs
 import com.fastcampus.exercisereservationsystem.domain.user.dto.response.*;
 import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
 import com.fastcampus.exercisereservationsystem.domain.user.service.UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -35,9 +37,23 @@ public class UserController {
 
     //로그인(최초 발급)
     @PostMapping("/login")
-    public ResponseEntity<LoginUserResponse> login(@Valid @RequestBody LoginUserRequest request) {
-        LoginUserResponse response = userService.login(request);
-        return ResponseEntity.ok().body(response);
+    public ResponseEntity<LoginUserResponse> login(@Valid @RequestBody LoginUserRequest request,
+                                                   HttpServletResponse response) {
+        // ✅ 1) 서비스 호출 (토큰 발급 로직은 그대로)
+        LoginUserResponse loginResponse  = userService.login(request);
+
+        // ✅ 2) 쿠키에 액세스 토큰 저장
+        ResponseCookie accessCookie = ResponseCookie.from("ACCESS_TOKEN", loginResponse .accessToken())
+                .httpOnly(true)
+                .secure(false)   // HTTPS면 true, 개발환경 http면 false ✅✅✅
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(60 * 60) // 1시간
+                .build();
+
+        response.addHeader("Set-Cookie", accessCookie.toString());
+
+        return ResponseEntity.ok().body(loginResponse);
     }
     // 로그인된 본인 정보 조회
     @GetMapping("/me")

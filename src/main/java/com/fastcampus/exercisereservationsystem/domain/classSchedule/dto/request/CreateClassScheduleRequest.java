@@ -5,6 +5,7 @@ import java.time.LocalTime;
 
 public record CreateClassScheduleRequest(
         String classname,
+        String description,
         LocalTime startTime,
         LocalTime endTime,
         LocalDate date,

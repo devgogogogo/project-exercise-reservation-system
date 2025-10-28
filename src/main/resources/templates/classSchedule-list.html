@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>운동 예약 – ClassSchedule</title>
+
+    <!-- CSRF (Spring Security 사용 시) -->
+    <meta th:if="${_csrf != null}" name="_csrf" th:content="${_csrf.token}" />
+    <meta th:if="${_csrf != null}" name="_csrf_header" th:content="${_csrf.headerName}" />
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: { brand: { 500:'#5b9cff', 600:'#3e7df0' }, brand2:'#7bd389' }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100">
+<header class="sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-500 to-brand2 shadow ring-1 ring-slate-900/20"></div>
+            <h1 class="text-base font-semibold">운동 예약 & 커뮤니티</h1>
+        </div>
+        <nav class="flex gap-2">
+            <a th:href="@{/}" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">홈</a>
+            <a th:href="@{/reservation}" class="px-3 py-1.5 rounded-xl border border-brand-600 bg-brand-600 text-white shadow">수업예약</a>
+        </nav>
+    </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 pt-8 pb-16">
+    <section class="mb-5">
+        <h2 class="text-2xl font-bold">수업 예약 목록</h2>
+        <p class="text-slate-500 dark:text-slate-400 mt-1">원하는 날짜와 조건으로 수업을 찾아 예약하세요.</p>
+    </section>
+
+    <!-- 필터 -->
+    <section class="bg-white/80 border border-slate-200 rounded-2xl p-4 md:p-5 shadow-sm dark:bg-slate-900/60 dark:border-slate-800">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="flex flex-col gap-1.5">
+                <label for="date" class="text-xs text-slate-500 dark:text-slate-400">수업 날짜</label>
+                <input id="date" type="date" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-slate-900 placeholder-slate-400 outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100" />
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label for="keyword" class="text-xs text-slate-500 dark:text-slate-400">검색어</label>
+                <input id="keyword" type="text" placeholder="클래스/강사/장소 검색" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-slate-900 placeholder-slate-400 outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100" />
+            </div>
+            <div class="flex items-end gap-2 sm:col-span-2 lg:col-span-2">
+                <button id="resetBtn" class="flex-1 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">초기화</button>
+                <button id="searchBtn" class="flex-1 rounded-xl border border-brand-600 bg-brand-600 px-3 py-2.5 text-white shadow hover:brightness-110">조회</button>
+            </div>
+        </div>
+
+        <!-- 빠른 날짜 선택 -->
+        <div class="mt-3 flex flex-wrap gap-2 text-sm">
+            <button data-quick="today" class="quick-date px-3 py-1.5 rounded-full border border-slate-300 bg-white hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800">오늘</button>
+            <button data-quick="tomorrow" class="quick-date px-3 py-1.5 rounded-full border border-slate-300 bg-white hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800">내일</button>
+            <button data-quick="week" class="quick-date px-3 py-1.5 rounded-full border border-slate-300 bg-white hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800">이번 주</button>
+        </div>
+    </section>
+
+    <!-- 목록 -->
+    <section id="listWrap" class="mt-5" aria-live="polite">
+        <div id="list" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"></div>
+        <div id="placeholder" class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <div class="rounded-2xl border border-dashed border-slate-300 bg-white/50 p-6 text-center text-slate-400 dark:border-slate-700 dark:bg-slate-800/40">빈 클래스 카드</div>
+            <div class="rounded-2xl border border-dashed border-slate-300 bg-white/50 p-6 text-center text-slate-400 dark:border-slate-700 dark:bg-slate-800/40">빈 클래스 카드</div>
+            <div class="rounded-2xl border border-dashed border-slate-300 bg-white/50 p-6 text-center text-slate-400 dark:border-slate-700 dark:bg-slate-800/40">빈 클래스 카드</div>
+        </div>
+        <div id="empty" class="hidden text-center text-slate-500 dark:text-slate-400 py-10">조건에 맞는 수업이 없습니다.</div>
+    </section>
+</main>
+
+<script>
+    // ====== 엔드포인트(필요 시 경로 맞춰 변경) ======
+    const ENDPOINT = '/api/schedules';         // 목록 조회
+    const BOOK_ENDPOINT = '/api/reservations'; // 예약 생성
+
+    // ====== 유틸 ======
+    const pad = n => String(n).padStart(2,'0');
+
+    function fmtDateTime(iso){
+        if(!iso) return '-';
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return '-';
+        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function authHeaders(){
+        const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+        return token ? { 'Authorization': `Bearer ${token}` } : {};
+    }
+
+    // 정원/신청 인원 계산 (백엔드에서 어떤 키로 줄지 몰라서 유연하게 처리)
+    function capacityInfo(item){
+        const cap = Number(item.capacity ?? item.maxCapacity ?? 0);
+        const enrolled = Number(item.enrolledCount ?? item.currentEnrolled ?? item.reservedCount ?? 0);
+        const left = Math.max(cap - enrolled, 0);
+        const pct = cap > 0 ? Math.min(Math.round((enrolled/cap)*100), 100) : 0;
+        return {cap,enrolled,left,pct, full: cap > 0 && left <= 0};
+    }
+
+    // 시작 시각 추출 (가능한 여러 키 지원)
+    function extractStartISO(item){
+        // 1) 통합 필드 우선
+        if (item.startAt || item.startDateTime) return item.startAt || item.startDateTime;
+        // 2) date + time 조합
+        if (item.date && item.startTime) {
+            // startTime 이 "HH:mm" 이거나 "HH:mm:ss" 라고 가정
+            const time = String(item.startTime);
+            return `${item.date}T${time.length===5? time+":00" : time}`;
+        }
+        // 3) 단일 time만 있으면 오늘 날짜로 (fallback)
+        if (item.startTime) {
+            const now = new Date();
+            const y = now.getFullYear(), m = pad(now.getMonth()+1), d = pad(now.getDate());
+            const time = String(item.startTime);
+            return `${y}-${m}-${d}T${time.length===5? time+":00" : time}`;
+        }
+        return null;
+    }
+
+    // 20분 이전까지만 예약 가능
+    function isBookableByTime(startIso){
+        if (!startIso) return false;
+        const start = new Date(startIso);
+        if (isNaN(start.getTime())) return false;
+        const now = new Date();
+        const diffMin = Math.floor((start - now)/60000);
+        return diffMin > 20; // 시작 20분 전까지 가능
+    }
+
+    function card(item){
+        // 제목(수업이름)
+        const title = item.classname || item.className || item.title || item.name || '이름 미정';
+
+        // 시작/종료 표시용 (표시만; 예약 가능 판단은 start만 필요)
+        const startIso = extractStartISO(item);
+        const endIso   = item.endAt || item.endDateTime || (item.date && item.endTime ? `${item.date}T${String(item.endTime).length===5 ? item.endTime+":00" : item.endTime}` : null);
+        const startDisp = fmtDateTime(startIso);
+        const endDisp   = fmtDateTime(endIso);
+
+        // 정원/신청 수
+        const {cap,enrolled,left,pct,full} = capacityInfo(item);
+
+        // 예약 가능 여부(시간)
+        const timeOk = isBookableByTime(startIso);
+
+        // 버튼 상태 결정
+        let btnHtml = '';
+        if (full) {
+            // 정원 꽉 참 → '인원만석' (비활성, 다른 색)
+            btnHtml = `<button class="cursor-not-allowed rounded-lg border px-3 py-2 text-sm
+                           border-slate-300 bg-slate-200 text-slate-500
+                           dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
+                         disabled>인원만석</button>`;
+        } else if (!timeOk) {
+            // 시간 제한 지나감 → '예약마감' (비활성)
+            btnHtml = `<button class="cursor-not-allowed rounded-lg border px-3 py-2 text-sm
+                           border-slate-300 bg-slate-200 text-slate-500
+                           dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
+                         disabled>예약마감</button>`;
+        } else {
+            // 예약 가능
+            btnHtml = `<button data-id="${item.id}" class="reserve rounded-lg border border-emerald-600 bg-emerald-600 px-3 py-2 text-sm text-white hover:brightness-110">수업가능</button>`;
+        }
+
+        return `
+      <article class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <h3 class="text-lg font-semibold">${title}</h3>
+        <p class="text-sm text-slate-600 dark:text-slate-300">🕑 ${startDisp} ~ ${endDisp}</p>
+        <!-- 필요 시 강사/장소 매핑: item.instructor / item.location -->
+        <div class="mt-2 h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-brand-500 to-brand2" style="width:${pct}%"></div>
+        </div>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          정원 ${cap || 0}명 · 신청 ${enrolled || 0}명 · 잔여 ${left || 0}명
+        </p>
+        <div class="mt-3 text-right">
+          ${btnHtml}
+        </div>
+      </article>`;
+    }
+
+    function renderList(items){
+        const list = document.getElementById('list');
+        const empty = document.getElementById('empty');
+        document.getElementById('placeholder').classList.add('hidden');
+
+        if(!items || items.length===0){
+            list.innerHTML = '';
+            empty.classList.remove('hidden');
+            return;
+        }
+        empty.classList.add('hidden');
+        list.innerHTML = items.map(card).join('');
+
+        // 예약 가능한 버튼만 이벤트 바인딩
+        list.querySelectorAll('.reserve').forEach(btn=>{
+            btn.addEventListener('click', async ()=>{
+                const id = btn.getAttribute('data-id');
+                try{
+                    const res = await fetch(BOOK_ENDPOINT,{
+                        method:'POST',
+                        headers:{'Content-Type':'application/json',...authHeaders()},
+                        body: JSON.stringify({ scheduleId:id })
+                    });
+                    if(!res.ok){
+                        const t = await res.text().catch(()=> '');
+                        return alert(t || '예약 실패');
+                    }
+                    alert('예약 완료!');
+                    search(); // 새로고침 대체: 잔여 인원 UI 갱신
+                }catch{
+                    alert('예약 중 오류 발생');
+                }
+            });
+        });
+    }
+
+    async function search(){
+        const date = document.getElementById('date').value;
+        const keyword = document.getElementById('keyword').value.trim();
+        const params = new URLSearchParams();
+        if(date) params.append('date', date);
+        if(keyword) params.append('q', keyword);
+        const url = `${ENDPOINT}?${params.toString()}`;
+
+        const list = document.getElementById('list');
+        document.getElementById('placeholder').classList.remove('hidden');
+        list.innerHTML = '';
+
+        try{
+            const res = await fetch(url,{headers:{Accept:'application/json',...authHeaders()}});
+            const data = await res.json();
+            const items = Array.isArray(data) ? data : (data.content || []);
+            renderList(items);
+        }catch(e){
+            document.getElementById('placeholder').classList.add('hidden');
+            list.innerHTML = '<div class="col-span-full text-center text-slate-400 py-6">데이터를 불러올 수 없습니다.</div>';
+        }
+    }
+
+    // 이벤트
+    document.getElementById('searchBtn').addEventListener('click', search);
+    document.getElementById('resetBtn').addEventListener('click', ()=>{
+        document.getElementById('date').value='';
+        document.getElementById('keyword').value='';
+        search();
+    });
+    document.querySelectorAll('.quick-date').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+            const d=new Date();
+            if(btn.dataset.quick==='today'){}
+            else if(btn.dataset.quick==='tomorrow') d.setDate(d.getDate()+1);
+            else if(btn.dataset.quick==='week') d.setDate(d.getDate()+7);
+            document.getElementById('date').value=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+            search();
+        });
+    });
+
+    // 초기 조회(오늘)
+    (()=>{
+        const d=new Date();
+        document.getElementById('date').value=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+        search();
+    })();
+</script>
+</body>
+</html>

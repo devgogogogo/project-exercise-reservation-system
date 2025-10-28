@@ -5,6 +5,8 @@ import com.fastcampus.exercisereservationsystem.domain.user.dto.request.CreateUs
 import com.fastcampus.exercisereservationsystem.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -14,13 +16,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import static com.fastcampus.exercisereservationsystem.domain.user.exception.UserErrorCode.*;
 
+@EnableMethodSecurity(prePostEnabled = true)
 @Controller
 @RequiredArgsConstructor
 public class PageController {
 
     private final UserService userService;
 
-    //첫 홈페이지 화면
+
+    //<--------------------------홈페이지------------------------------------------------->
     @GetMapping("/")
     public String home() {
 
@@ -42,15 +46,11 @@ public class PageController {
         return "login";
     }
 
-    //예약 페이지
-    @GetMapping("/reservation")
-    public String reservationForm() {
-        return "reservation";
-    }
-    // 공지 목록 페이지 (혹시 /notices 접근 시 HTML 직접 열리게 하려면)
+    //<--------------------------공지사항------------------------------------------------>
+    //공지사항 목록
     @GetMapping("/notices")
     public String noticeListPage() {
-        return "notice";              // templates/notice.html
+        return "notice";
     }
 
     // 공지 작성 페이지
@@ -64,12 +64,37 @@ public class PageController {
     public String noticeDetailPage() {
         return "notice-detail"; // 👉 notice-detail.html
     }
-
+    //<--------------------------수업 프로그램--------------------------------------------->
     @GetMapping("/program")
     public String programPage() {
         return "program";
     }
 
+    //<-------예약--------->
+    //예약 생성폼 페이지
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/classSchedule-create")
+    public String classScheduleCreate() {
+        return "classSchedule-create";
+    }
+
+    //예약 목록페이지
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @GetMapping("/classSchedule-list")
+    public String classScheduleList() {
+        return "classSchedule-list";
+    }
+
+    //예약 달력
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/classSchedule-calendar")
+    public String classScheduleCalendarPage() {
+        return "classSchedule-calendar";
+    }
+
+
+    //<--------------------------내 정보--------------------------------------------->
+    //내 정보
     @GetMapping("/my")
     public String myPage() {
         return "my";

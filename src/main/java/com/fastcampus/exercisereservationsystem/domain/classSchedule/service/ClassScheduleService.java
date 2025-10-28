@@ -28,7 +28,7 @@ public class ClassScheduleService {
     @Transactional
     public CreateClassScheduleResponse createClassSchedule(CreateClassScheduleRequest request,UserEntity userEntity) {
         ClassScheduleEntity classScheduleEntity;
-        classScheduleEntity = new ClassScheduleEntity(request.classname(),request.startTime(),request.endTime(),request.date(),request.capacity(),userEntity);
+        classScheduleEntity = new ClassScheduleEntity(request.classname(),request.description(),request.startTime(),request.endTime(),request.date(),request.capacity(),userEntity);
         classScheduleRepository.save(classScheduleEntity);
         return CreateClassScheduleResponse.from(classScheduleEntity);
     }
@@ -38,10 +38,11 @@ public class ClassScheduleService {
         List<ClassScheduleEntity> classScheduleEntities = classScheduleRepository.findAllByDateOrderByStartTimeAsc(date);
        return classScheduleEntities.stream().map(GetClassScheduleResponse::from).toList();
     }
+
     @Transactional
     public UpdateClassScheduleResponse updateClassSchedule(UpdateClassScheduleRequest request,Long classSchedulesId) {
         ClassScheduleEntity classScheduleEntity = classScheduleRepository.findById(classSchedulesId).orElseThrow(() -> new BizException(ClassScheduleErrorCode.SCHEDULE_NOT_FOUND));
-        classScheduleEntity.updateClassSchedule(request.classname(), request.startTime(),request.endTime(),request.date(),request.capacity());
+        classScheduleEntity.updateClassSchedule(request.classname(),request.description(),request.startTime(),request.endTime(),request.date(),request.capacity());
         classScheduleRepository.save(classScheduleEntity);
         return UpdateClassScheduleResponse.from(classScheduleEntity);
     }
