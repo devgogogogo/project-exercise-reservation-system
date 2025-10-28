@@ -25,18 +25,21 @@
 
         <div class="space-y-4">
             <div>
-                <label class="block text-sm font-medium">제목</label>
-                <input id="title" type="text" class="mt-1 w-full rounded-xl border-slate-300" placeholder="제목을 입력하세요" />
-            </div>
-            <div>
-                <label class="block text-sm font-medium">내용</label>
-                <textarea id="description" rows="10" class="mt-1 w-full rounded-xl border-slate-300" placeholder="내용을 입력하세요"></textarea>
+                <label for="title" class="block text-sm font-medium">제목</label>
+                <input id="title" type="text" class="mt-1 w-full rounded-xl border-slate-300"
+                       placeholder="제목을 입력하세요" maxlength="200"/>
             </div>
 
-            <div id="status" class="text-sm"></div>
+            <div>
+                <label for="description" class="block text-sm font-medium">내용</label>
+                <textarea id="description" rows="10" class="mt-1 w-full rounded-xl border-slate-300"
+                          placeholder="내용을 입력하세요"></textarea>
+            </div>
+
+            <div id="status" class="text-sm h-5"></div>
 
             <div class="flex gap-2">
-                <button id="saveBtn" class="px-4 py-2 rounded-xl bg-sky-600 text-white hover:bg-sky-700">등록</button>
+                <button id="saveBtn" class="px-4 py-2 rounded-xl bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-60">등록</button>
                 <a th:href="@{/notices}" class="px-4 py-2 rounded-xl border bg-white hover:bg-slate-50">취소</a>
             </div>
         </div>
@@ -44,62 +47,100 @@
 </main>
 
 <script>
-    function authHeaders(){
-        const h = {};
+    // 공통 헤더 (JWT & CSRF 지원)
+    function authHeaders() {
+        const headers = { 'Content-Type': 'application/json' };
         const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
-        if (token) h['Authorization'] = `Bearer ${token}`;
+        if (token) headers['Authorization'] = `Bearer ${token}`;
         const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
-        if (csrfToken && csrfHeader) h[csrfHeader] = csrfToken;
-        return h;
-    }
-    function setStatus(msg, ok=false){
-        const el = document.getElementById('status');
-        el.textContent = msg;
-        el.className = 'text-sm ' + (ok ? 'text-emerald-600' : 'text-red-600');
+        if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+        return headers;
     }
 
-    // ADMIN 가드 (비관리자 접근 차단)
-    (async function guardAdmin(){
+    function setStatus(msg, ok = false) {
+        const el = document.getElementById('status');
+        el.textContent = msg || '';
+        el.className = 'text-sm h-5 ' + (msg ? (ok ? 'text-emerald-600' : 'text-red-600') : 'text-slate-500');
+    }
+
+    // ADMIN 가드: /api/users/me 로 권한 확인
+    (async function guardAdmin() {
         try {
             const res = await fetch('/api/users/me', { headers: authHeaders(), credentials: 'include' });
-            if (!res.ok) { location.href='/login?error'; return; }
+            if (!res.ok) { location.href = '/login?error'; return; }
             const me = await res.json();
-            const role = (me.role || '').toUpperCase();
-            const roles = Array.isArray(me.roles) ? me.roles.map(String) : [];
+
+            const role = (me.role || '').toString().toUpperCase();
+            const roles = Array.isArray(me.roles) ? me.roles.map(v => v.toString().toUpperCase()) : [];
             const authorities = Array.isArray(me.authorities)
-                ? me.authorities.map(a => (a.authority || a).toString())
+                ? me.authorities.map(a => (a.authority || a).toString().toUpperCase())
                 : [];
+
             const isAdmin =
                 role === 'ADMIN' || role === 'ROLE_ADMIN' ||
                 roles.includes('ADMIN') || roles.includes('ROLE_ADMIN') ||
                 authorities.includes('ROLE_ADMIN');
-            if (!isAdmin) location.href='/notices';
-        } catch { location.href='/login?error'; }
+
+            if (!isAdmin) location.href = '/notices';
+        } catch (e) {
+            location.href = '/login?error';
+        }
     })();
 
-    document.getElementById('saveBtn').addEventListener('click', async () => {
-        const title = document.getElementById('title').value.trim();
-        const description = document.getElementById('description').value;
+    // 저장 로직
+    const titleEl = document.getElementById('title');
+    const descEl  = document.getElementById('description');
+    const saveBtn = document.getElementById('saveBtn');
 
-        if (!title) { setStatus('제목을 입력하세요.'); return; }
+    async function saveNotice() {
+        const title = titleEl.value.trim();
+        const description = descEl.value ?? '';
+
+        if (!title) { setStatus('제목을 입력하세요.'); titleEl.focus(); return; }
 
         try {
+            saveBtn.disabled = true;
+            setStatus('등록 중...', true);
+
             const res = await fetch('/api/notices', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', ...authHeaders() },
-                body: JSON.stringify({ title, description })
+                headers: authHeaders(),
+                credentials: 'include',
+                body: JSON.stringify({ title, description }) // CreateNoticeRequest
             });
+
             if (!res.ok) {
+                if (res.status === 401) throw new Error('로그인이 필요합니다.');
                 if (res.status === 403) throw new Error('권한이 없습니다. (관리자 전용)');
-                throw new Error('HTTP ' + res.status);
+                if (res.status === 400) {
+                    const errText = await res.text().catch(() => '');
+                    throw new Error(errText || '요청 형식이 올바르지 않습니다.');
+                }
+                throw new Error('오류가 발생했습니다. (HTTP ' + res.status + ')');
             }
-            const data = await res.json(); // { id, title, description }
+
+            const data = await res.json(); // CreateNoticeResponse { id, ... } 가정
             setStatus('등록되었습니다.', true);
+            // 상세 페이지로 이동
             location.href = `/notices/${data.id}`;
         } catch (e) {
             setStatus(e.message || '등록 중 오류가 발생했습니다.');
+        } finally {
+            saveBtn.disabled = false;
         }
+    }
+
+    saveBtn.addEventListener('click', saveNotice);
+
+    // Ctrl/⌘ + Enter 제출
+    [titleEl, descEl].forEach(el => {
+        el.addEventListener('keydown', (ev) => {
+            if ((ev.ctrlKey || ev.metaKey) && ev.key === 'Enter') {
+                ev.preventDefault();
+                saveNotice();
+            }
+        });
     });
 </script>
 </body>
