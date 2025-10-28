@@ -6,7 +6,7 @@ import java.time.LocalDate;
 
 public record CreateCommentResponse(
         Long commentId,
-        String username,
+        String nickname,
         String description,
         LocalDate modifiedAt
 ) {
@@ -14,7 +14,7 @@ public record CreateCommentResponse(
     public static CreateCommentResponse from(CommentEntity entity) {
         return new CreateCommentResponse(
                 entity.getId(),
-                entity.getUser().getUsername(),
+                entity.getUser().getNickname(),
                 entity.getDescription(),
                 entity.getModifiedAt().toLocalDate()
         );
