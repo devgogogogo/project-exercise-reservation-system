@@ -35,7 +35,7 @@ public class PageController {
     @GetMapping("/signup")
     public String signupForm(Model model) {
         if (!model.containsAttribute("createUserForm")) {
-            model.addAttribute("createUserForm", new CreateUserRequest(null,null,null,null,null,null));
+            model.addAttribute("createUserForm", new CreateUserRequest(null, null, null, null, null, null));
         }
         return "signup";
     }
@@ -64,6 +64,7 @@ public class PageController {
     public String noticeDetailPage() {
         return "notice-detail"; // 👉 notice-detail.html
     }
+
     //<--------------------------수업 프로그램--------------------------------------------->
     @GetMapping("/program")
     public String programPage() {
@@ -75,7 +76,12 @@ public class PageController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/classSchedule-create")
     public String classScheduleCreate() {
-        return "classSchedule-create";
+        return "classSchedule-calendar";
+    }
+
+    @GetMapping("/classSchedule-createForm")
+    public String classScheduleCreateForm() {
+        return "classSchedule-createForm";
     }
 
     //예약 목록페이지
@@ -83,13 +89,6 @@ public class PageController {
     @GetMapping("/classSchedule-list")
     public String classScheduleList() {
         return "classSchedule-list";
-    }
-
-    //예약 달력
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/classSchedule-calendar")
-    public String classScheduleCalendarPage() {
-        return "classSchedule-calendar";
     }
 
 
@@ -101,9 +100,9 @@ public class PageController {
     }
 
     /**
-     서비스는 예외를 던진다. (throw new BizException(UserErrorCode.…))
-     컨트롤러는 그 예외를 받아서 BindingResult에 에러를 매핑하고 폼을 다시 보여준다.
-     그래서 try/catch로 BizException을 받아 BindingResult에 담았다.
+     * 서비스는 예외를 던진다. (throw new BizException(UserErrorCode.…))
+     * 컨트롤러는 그 예외를 받아서 BindingResult에 에러를 매핑하고 폼을 다시 보여준다.
+     * 그래서 try/catch로 BizException을 받아 BindingResult에 담았다.
      */
     @PostMapping("/signup")
     public String signupSubmit(
@@ -120,14 +119,11 @@ public class PageController {
             userService.signup(form);
         } catch (BizException e) {
             switch (e.getErrorCode()) {
-                case USER_ALREADY_EXISTED ->
-                        bindingResult.rejectValue("username", "duplicate", "이미 사용 중인 아이디입니다.");
+                case USER_ALREADY_EXISTED -> bindingResult.rejectValue("username", "duplicate", "이미 사용 중인 아이디입니다.");
                 case USER_NICKNAME_ALREADY_EXISTED ->
                         bindingResult.rejectValue("nickname", "duplicate", "이미 사용 중인 닉네임입니다.");
-                case USER_INVALID_DATE_RANGE ->
-                        bindingResult.reject("dates.invalid", "시작일은 종료일보다 늦을 수 없습니다.");
-                default ->
-                        bindingResult.reject("signup.failed", "회원가입 처리에 실패했습니다.");
+                case USER_INVALID_DATE_RANGE -> bindingResult.reject("dates.invalid", "시작일은 종료일보다 늦을 수 없습니다.");
+                default -> bindingResult.reject("signup.failed", "회원가입 처리에 실패했습니다.");
             }
             return "signup";
         }

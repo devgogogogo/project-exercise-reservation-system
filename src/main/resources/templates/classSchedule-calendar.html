@@ -271,7 +271,7 @@
             const box = addBtn.closest('[data-date]');
             if (!box) return;
             const date = box.dataset.date;
-            location.href = `/classSchedule-create?date=${date}`;
+            location.href = `/classSchedule-createForm?date=${date}`;
             return;
         }
         const delBtn = e.target.closest('.delBtn');

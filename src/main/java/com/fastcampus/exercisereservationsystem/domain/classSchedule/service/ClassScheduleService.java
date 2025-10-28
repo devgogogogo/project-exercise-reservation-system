@@ -51,4 +51,11 @@ public class ClassScheduleService {
         ClassScheduleEntity classScheduleEntity = classScheduleRepository.findById(classSchedulesId).orElseThrow(() -> new BizException(ClassScheduleErrorCode.SCHEDULE_NOT_FOUND));
         classScheduleRepository.delete(classScheduleEntity);
     }
+
+    public List<GetClassScheduleResponse> getClassSchedules(LocalDate start, LocalDate end) {
+        return classScheduleRepository.findAllByDateBetweenOrderByDateAsc(start, end)
+                .stream()
+                .map(GetClassScheduleResponse::from)
+                .toList();
+    }
 }

@@ -34,6 +34,17 @@ public class ClassScheduleController {
         CreateClassScheduleResponse response = classScheduleService.createClassSchedule(request,userEntity);
         return ResponseEntity.ok().body(response);
     }
+
+    //이 api로 달력에서 조회됨
+    @GetMapping
+    public ResponseEntity<List<GetClassScheduleResponse>> getClassSchedules(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end
+    ) {
+        List<GetClassScheduleResponse> responses = classScheduleService.getClassSchedules(start,end);
+        return ResponseEntity.ok(responses);
+    }
+
     @GetMapping
     public ResponseEntity<List<GetClassScheduleResponse>> getByDate(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         List<GetClassScheduleResponse> responses = classScheduleService.getByDate(date);

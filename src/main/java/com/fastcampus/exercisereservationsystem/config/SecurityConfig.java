@@ -73,56 +73,60 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .authorizeHttpRequests(auth -> auth
-                        // ===== 뷰 페이지 (정적/화면) =====
-                        .requestMatchers(HttpMethod.GET, "/", "/login", "/signup",
-                                "/reservation", "/notices", "/notices/*", "/notices/new",
+        http.authorizeHttpRequests(auth -> auth
+                        /* -------------------- 정적/공용 뷰 -------------------- */
+                        .requestMatchers(HttpMethod.GET,
+                                "/", "/login", "/signup",
+                                "/reservation",                // 예약 메인(뷰)
+                                "/notices", "/notices/*", "/notices/new",
                                 "/css/**", "/js/**", "/images/**").permitAll()
 
-                        // ===== 공지 API =====
-                        // 조회는 공개
-                        .requestMatchers(HttpMethod.GET, "/api/notices", "/api/notices/search", "/api/notices/*").permitAll()
-                        // 생성/수정/삭제는 관리자만
-                        .requestMatchers(HttpMethod.POST,   "/api/notices").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT,    "/api/notices/*").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/notices/*").hasRole("ADMIN")
+                        /* -------------------- 문서/헬스 -------------------- */
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/actuator/health", "/api/test/**").permitAll()
 
-                        // ✅ 로그인한 사용자면 누구나 접근 가능 (/api/users/me)
-                        .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
-
-                        // ============ 수업 스케줄 ============
-                        .requestMatchers(HttpMethod.GET, "/api/classSchedules/**").hasAnyRole("ADMIN","USER")
-                        .requestMatchers("/api/classSchedules/**").hasRole("ADMIN")
-
-                        // ============ 댓글 ============
-                        .requestMatchers("/api/notices/*/comments/**").hasAnyRole("ADMIN","USER")
-
-                        // ============= 예약 ============
-                        .requestMatchers(HttpMethod.GET, "/api/class-schedules/*/reservation/**").hasRole("USER")
-                        //예약생성 달력, 생성폼
-                        .requestMatchers(HttpMethod.GET, "/classSchedule-calendar","/classSchedule-create").hasRole("ADMIN")
-                        //예약목록 조회
-                        .requestMatchers(HttpMethod.GET, "/classSchedule-list").hasAnyRole("ADMIN","USER")
-
-
-                        // ===== 프로그램 =====
-                        .requestMatchers(HttpMethod.GET, "/api/program", "/api/program/**").hasAnyRole("USER","ADMIN")
-                        .requestMatchers("/api/program", "/api/program/**").hasRole("ADMIN")
-
-                        // ===== 유저 =====
-                        // 로그인/회원가입/토큰 재발급은 모두 허용
+                        /* -------------------- 유저 API -------------------- */
+                        // 로그인/가입/토큰재발급: 공개
                         .requestMatchers(HttpMethod.POST, "/api/users/login", "/api/users/signup", "/api/users/refresh").permitAll()
-                        // 👇 여기가 중요: 로그인한 사용자 누구나 /me 접근 가능
-                        // 나머지 /api/users/** 는 ADMIN
+                        // 내 정보: 로그인 필요
+                        .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
+                        // 그 외 유저 API: ADMIN
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
 
-                        // 문서/헬스체크
-                        .requestMatchers("/api/test/**", "/swagger-ui/**", "/v3/api-docs/**", "/actuator/health").permitAll()
+                        /* -------------------- 공지 API -------------------- */
+                        // 조회: 공개
+                        .requestMatchers(HttpMethod.GET, "/api/notices", "/api/notices/search", "/api/notices/*").permitAll()
+                        // 생성/수정/삭제: ADMIN
+                        .requestMatchers(HttpMethod.POST, "/api/notices").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/notices/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/notices/*").hasRole("ADMIN")
 
-                        // 그 외
+                        /* -------------------- 수업 스케줄 API -------------------- */
+                        // 조회(월범위 ?start&end 또는 단일 ?date): 로그인 사용자 허용 (원하면 permitAll로 변경)
+                        .requestMatchers(HttpMethod.GET, "/api/classSchedules").hasAnyRole("ADMIN", "USER")
+                        // 생성/수정/삭제: ADMIN
+                        .requestMatchers(HttpMethod.POST, "/api/classSchedules/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/classSchedules/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/classSchedules/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/classSchedules/**").hasRole("ADMIN")
+
+                        /* -------------------- 예약 API (예시) -------------------- */
+                        // ⚠️ 경로 철자 컨트롤러와 일치시킬 것
+                        .requestMatchers(HttpMethod.GET, "/api/classSchedules/*/reservation/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.POST, "/api/classSchedules/*/reservation/**").hasRole("USER")
+
+                        // 날짜별 삭제 엔드포인트가 /api/program?date=... 라면 (실제 컨트롤러 경로 확인)
+                        .requestMatchers(HttpMethod.DELETE, "/api/program").hasRole("ADMIN")
+
+                        /* -------------------- 뷰(페이지) 접근 제어 -------------------- */
+                        // 수업 캘린더/생성폼: ADMIN 전용 (보기만 사용자도 허용하고 싶으면 hasAnyRole로)
+                        .requestMatchers("/classSchedule-calendar", "/classSchedule-createForm").hasRole("ADMIN")
+                        // 예약 목록(뷰): ADMIN/USER
+                        .requestMatchers(HttpMethod.GET, "/classSchedule-list").hasAnyRole("ADMIN", "USER")
+
+                        /* -------------------- 나머지 -------------------- */
                         .anyRequest().authenticated()
                 )
+
 
                 // CORS (아래 corsConfigurationSource())
                 .cors(Customizer.withDefaults())
