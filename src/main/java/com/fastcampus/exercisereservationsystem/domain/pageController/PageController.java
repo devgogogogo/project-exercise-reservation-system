@@ -72,20 +72,18 @@ public class PageController {
     }
 
     //<-------예약--------->
-    //예약 생성폼 페이지
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/classSchedule-create")
+    //예약 달력
+    @GetMapping("/classSchedule-calendar")
     public String classScheduleCreate() {
         return "classSchedule-calendar";
     }
-
+    //예약 생성폼 페이지
     @GetMapping("/classSchedule-createForm")
     public String classScheduleCreateForm() {
         return "classSchedule-createForm";
     }
 
     //예약 목록페이지
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @GetMapping("/classSchedule-list")
     public String classScheduleList() {
         return "classSchedule-list";

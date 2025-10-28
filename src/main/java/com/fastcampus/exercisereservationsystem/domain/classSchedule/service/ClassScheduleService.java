@@ -32,6 +32,13 @@ public class ClassScheduleService {
         classScheduleRepository.save(classScheduleEntity);
         return CreateClassScheduleResponse.from(classScheduleEntity);
     }
+    @Transactional(readOnly = true)
+    public List<GetClassScheduleResponse> getClassSchedules(LocalDate start, LocalDate end) {
+        return classScheduleRepository.findAllByDateBetweenOrderByDateAsc(start, end)
+                .stream()
+                .map(GetClassScheduleResponse::from)
+                .toList();
+    }
 
     @Transactional(readOnly = true)
     public List<GetClassScheduleResponse> getByDate(LocalDate date) {
@@ -52,10 +59,4 @@ public class ClassScheduleService {
         classScheduleRepository.delete(classScheduleEntity);
     }
 
-    public List<GetClassScheduleResponse> getClassSchedules(LocalDate start, LocalDate end) {
-        return classScheduleRepository.findAllByDateBetweenOrderByDateAsc(start, end)
-                .stream()
-                .map(GetClassScheduleResponse::from)
-                .toList();
-    }
 }

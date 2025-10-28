@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public record GetClassScheduleResponse(
-        String classname,
+        String className,
         String description,
         LocalTime startAt,
         LocalTime endAt,

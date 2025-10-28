@@ -119,9 +119,13 @@ public class SecurityConfig {
 
                         /* -------------------- 뷰(페이지) 접근 제어 -------------------- */
                         // 수업 캘린더/생성폼: ADMIN 전용 (보기만 사용자도 허용하고 싶으면 hasAnyRole로)
-                        .requestMatchers("/classSchedule-calendar", "/classSchedule-createForm").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/classSchedule-calendar", "/classSchedule-createForm").permitAll()
+                        .requestMatchers(HttpMethod.GET,  "/api/classSchedules/**").hasAnyRole("ADMIN","USER")
+                        .requestMatchers(HttpMethod.POST, "/api/classSchedules/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH,"/api/classSchedules/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE,"/api/classSchedules/**").hasRole("ADMIN")
                         // 예약 목록(뷰): ADMIN/USER
-                        .requestMatchers(HttpMethod.GET, "/classSchedule-list").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers("/classSchedule-list").permitAll()
 
                         /* -------------------- 나머지 -------------------- */
                         .anyRequest().authenticated()

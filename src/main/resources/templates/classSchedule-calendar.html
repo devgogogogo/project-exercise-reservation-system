@@ -6,28 +6,35 @@
     <title>예약 관리</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
     <style>
-        .day-scroll{max-height:6.5rem; overflow:auto;}
+        /* 셀 크기/스크롤 영역 키움 */
+        .day-scroll{max-height:12rem; overflow:auto;}
         .no-scrollbar::-webkit-scrollbar{display:none;}
         .no-scrollbar{-ms-overflow-style:none; scrollbar-width:none;}
+        .btn-icon{font-size:.9rem}
+        /* 캘린더 폰트/간격 업 */
+        .cal-title{font-size:1.1rem; font-weight:700;}
+        .cal-week{font-size:.95rem;}
     </style>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900">
 
 <header class="sticky top-0 bg-white border-b border-slate-200">
-    <div class="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <a th:href="@{/}" class="text-sm px-3 py-1.5 rounded-xl border bg-white hover:bg-slate-100">← 홈</a>
         <span class="text-sm text-slate-500">예약 관리 (관리자 전용)</span>
     </div>
 </header>
 
-<main class="max-w-6xl mx-auto px-6 py-8">
+<main class="max-w-8xl mx-auto px-6 py-8">
     <section class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-        <div class="flex flex-wrap items-center gap-3 mb-5">
-            <h1 class="text-2xl font-bold">예약 관리</h1>
+        <div class="flex flex-wrap items-center gap-4 mb-6">
+            <h1 class="cal-title">예약 관리</h1>
+
             <div class="flex items-center gap-2 ml-auto">
                 <button id="prevMonth" class="px-3 py-1.5 rounded-lg border hover:bg-slate-50">〈</button>
                 <button id="nextMonth" class="px-3 py-1.5 rounded-lg border hover:bg-slate-50">〉</button>
             </div>
+
             <div class="flex items-center gap-2">
                 <label for="yearSelect" class="text-sm text-slate-600">연도</label>
                 <select id="yearSelect" class="rounded-lg border-slate-300"></select>
@@ -39,35 +46,40 @@
                     <option value="9">10</option><option value="10">11</option><option value="11">12</option>
                 </select>
             </div>
+
             <button id="goToday" class="px-3 py-1.5 rounded-lg border hover:bg-slate-50">오늘로</button>
         </div>
 
         <!-- 요일 헤더 -->
-        <div class="grid grid-cols-7 text-center text-sm font-semibold text-slate-500 mb-2">
+        <div class="grid grid-cols-7 text-center cal-week font-semibold text-slate-600 mb-3">
             <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
         </div>
 
-        <div id="calendar" class="grid grid-cols-7 gap-3 text-center text-base"></div>
+        <!-- 셀 크기 확장: gap 더 넓게, 셀 높이 h-72 -->
+         <!-- 기본 5열(넓음) → 큰 화면에서 6/7열로 점진 확대 -->
+        <div id="calendar" class="grid grid-cols-2 lg:grid-cols-6 2xl:grid-cols-7 gap-5"></div>
     </section>
 </main>
 
 <!-- 삭제 확인 모달 -->
 <div id="confirmModal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-    <div class="bg-white rounded-2xl shadow-xl p-6 w-80 text-center">
-        <p class="font-semibold mb-6">정말 삭제하시겠습니까?</p>
+    <div class="bg-white rounded-2xl shadow-xl p-6 w-[28rem] text-center">
+        <p class="font-semibold mb-2">해당 수업을 삭제할까요?</p>
+        <p id="confirmTarget" class="text-sm text-slate-500 mb-6"></p>
         <div class="flex justify-center gap-4">
-            <button id="confirmYes" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">예</button>
-            <button id="confirmNo" class="px-4 py-2 rounded-lg border bg-white hover:bg-slate-100">아니오</button>
+            <button id="confirmYes" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">삭제</button>
+            <button id="confirmNo" class="px-4 py-2 rounded-lg border bg-white hover:bg-slate-100">취소</button>
         </div>
     </div>
 </div>
 
 <script>
-    // ======= 설정 (엔드포인트 경로 필요 시 수정) =======
-    const LIST_ENDPOINT = '/api/classSchedules'; // ?start=YYYY-MM-DD&end=YYYY-MM-DD
-    const DELETE_BY_DATE = '/api/program?date='; // 필요 시 '/api/classSchedules?date=' 등으로 변경
+    // ======= 설정 =======
+    const LIST_ENDPOINT   = '/api/classSchedules/calendar'; // ?start=YYYY-MM-DD&end=YYYY-MM-DD
+    const DELETE_BY_ID    = '/api/classSchedules/';         // + {id}
+    const EDIT_FORM_PATH  = '/classSchedule-editForm';      // 추후 구현 예정
 
-    // ======= 관리자 가드(보조; 서버 @PreAuthorize 가 주 보호) =======
+    // ======= 관리자 가드(보조) =======
     async function guardAdmin() {
         try {
             const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
@@ -85,7 +97,7 @@
     }
     guardAdmin();
 
-    // ======= 공통 유틸/헤더 =======
+    // ======= 유틸 =======
     function authHeaders() {
         const headers = { 'Content-Type': 'application/json' };
         const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
@@ -95,7 +107,7 @@
     const pad = n => String(n).padStart(2, '0');
     const yyyyMmDd = (y,m0,d) => `${y}-${pad(m0+1)}-${pad(d)}`;
 
-    // ======= 달력 상태 =======
+    // ======= 상태 =======
     const calendarEl = document.getElementById('calendar');
     const yearSelect = document.getElementById('yearSelect');
     const monthSelect = document.getElementById('monthSelect');
@@ -105,8 +117,8 @@
 
     const today = new Date();
     let viewYear = today.getFullYear();
-    let viewMonth = today.getMonth(); // 0..11
-    let scheduleMap = {}; // {'YYYY-MM-DD': [{id, classname, ...}, ...]}
+    let viewMonth = today.getMonth();
+    let scheduleMap = {}; // {'YYYY-MM-DD': [{...}]}
 
     (function fillYears(){
         const start = today.getFullYear() - 5;
@@ -118,9 +130,8 @@
         }
     })();
 
-    // ======= 데이터 가져오기(해당 월) =======
+    // ======= 데이터 =======
     async function loadMonthSchedules(y, m0) {
-        // 월 시작/끝
         const start = yyyyMmDd(y, m0, 1);
         const end = yyyyMmDd(y, m0, new Date(y, m0+1, 0).getDate());
 
@@ -130,88 +141,96 @@
             if (!res.ok) throw 0;
             const data = await res.json();
             const items = Array.isArray(data) ? data : (data.content || []);
-            // date 필드 추출(유연 처리: date 또는 startAt/date+startTime)
             scheduleMap = {};
             for (const it of items) {
                 let dayKey = null;
                 if (it.date) {
-                    dayKey = it.date; // 'YYYY-MM-DD' 가정
+                    dayKey = it.date; // 'YYYY-MM-DD'
                 } else if (it.startAt || it.startDateTime) {
                     const d = new Date(it.startAt || it.startDateTime);
                     if (!isNaN(d.getTime())) dayKey = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-                } else if (it.startTime) {
-                    // date가 없고 startTime만 있으면 오늘로 묶는 건 애매 → 건너뜀
                 }
                 if (!dayKey) continue;
-                const arr = scheduleMap[dayKey] || (scheduleMap[dayKey] = []);
-                arr.push(it);
+                (scheduleMap[dayKey] ||= []).push(it);
             }
         } catch {
             scheduleMap = {};
         }
     }
 
-    // ======= 렌더링 =======
+    // ======= 렌더 =======
     function renderCalendar() {
-        // 셀렉터 동기화
+        // 셀렉터 값 동기화
         yearSelect.value = String(viewYear);
         monthSelect.value = String(viewMonth);
-
         calendarEl.innerHTML = '';
 
         const first = new Date(viewYear, viewMonth, 1);
-        const last = new Date(viewYear, viewMonth + 1, 0);
+        const last  = new Date(viewYear, viewMonth + 1, 0);
         const firstWeekday = first.getDay();
-        const daysInMonth = last.getDate();
+        const daysInMonth  = last.getDate();
 
         // 앞쪽 빈칸
-        for (let i=0;i<firstWeekday;i++){
+        for (let i=0; i<firstWeekday; i++) {
             const blank = document.createElement('div');
-            blank.className = 'h-40 rounded-2xl';
+            blank.className = 'h-12 rounded-2xl';
             calendarEl.appendChild(blank);
         }
 
-        // 본 날짜
+        // 날짜별 셀 생성
         for (let d=1; d<=daysInMonth; d++) {
             const dateStr = yyyyMmDd(viewYear, viewMonth, d);
             const isToday = (dateStr === yyyyMmDd(today.getFullYear(), today.getMonth(), today.getDate()));
 
             const box = document.createElement('div');
-            box.className = 'border rounded-2xl p-3 flex flex-col items-stretch justify-start h-40 text-left relative';
+            box.className = 'border rounded-2xl p-4 flex flex-col items-stretch justify-start h-60 text-left relative';
             box.dataset.date = dateStr;
 
-            // 헤더(일자 + 버튼)
+            // 상단 (날짜 + +버튼)
             const head = document.createElement('div');
-            head.className = 'flex items-center justify-between mb-2';
+            head.className = 'flex items-center justify-between mb-3';
             head.innerHTML = `
-        <span class="font-semibold ${isToday?'text-sky-600':''}">${d}</span>
-        <div class="flex gap-2">
-          <button class="addBtn text-green-600 text-xl leading-none" title="예약 생성">＋</button>
-          <button class="delBtn text-red-600 text-xl leading-none" title="예약 삭제">－</button>
-        </div>
-      `;
+      <span class="font-semibold ${isToday ? 'text-sky-600' : ''}">${d}</span>
+      <button class="addBtn text-green-600 text-xl leading-none" title="수업 생성">＋</button>
+    `;
             box.appendChild(head);
 
-            // 스케줄 리스트
+            // 수업 리스트 영역
             const listWrap = document.createElement('div');
             listWrap.className = 'day-scroll no-scrollbar space-y-1';
             const items = scheduleMap[dateStr] || [];
 
+            // 항목 렌더링
             if (items.length === 0) {
                 const empty = document.createElement('div');
-                empty.className = 'text-xs text-slate-400';
+                empty.className = 'text-sm text-slate-400';
                 empty.textContent = '등록된 수업 없음';
                 listWrap.appendChild(empty);
             } else {
-                // 제목 최대 3개 표시(+ 더보기 카운트)
-                const maxShow = 3;
+                const maxShow = 8;
+
                 items.slice(0, maxShow).forEach(it => {
-                    const title = it.classname || it.className || it.title || it.name || '(제목 없음)';
-                    const pill = document.createElement('div');
-                    pill.className = 'text-xs px-2 py-1 rounded-lg bg-slate-100 text-slate-700 truncate';
-                    pill.textContent = title;
-                    listWrap.appendChild(pill);
+                    // ✅ 서버 응답 필드 그대로 사용
+                    const title = it.className || '(제목 없음)';
+
+                    // ✅ 가로형 배치: 수업명 왼쪽, 수정/삭제 오른쪽
+                    const row = document.createElement('div');
+                    row.className =
+                        'flex items-center justify-between px-3 py-1.5 rounded-lg bg-slate-100 text-slate-800';
+                    row.innerHTML = `
+            <span class="truncate text-[0.95rem]">${title}</span>
+            <div class="flex gap-2">
+                <button class="editBtn px-2 py-0.5 rounded border hover:bg-white" data-id="${it.id ?? it.classScheduleId}" title="수정">수정</button>
+                <button class="delBtn px-2 py-0.5 rounded border hover:bg-white text-red-600"
+                    data-id="${it.id ?? it.classScheduleId}"
+                    data-title="${title}"
+                    data-date="${dateStr}"
+                    title="삭제">삭제</button>
+            </div>
+        `;
+                    listWrap.appendChild(row);
                 });
+
                 if (items.length > maxShow) {
                     const more = document.createElement('div');
                     more.className = 'text-xs text-slate-500';
@@ -219,52 +238,55 @@
                     listWrap.appendChild(more);
                 }
             }
-            box.appendChild(listWrap);
 
+
+            box.appendChild(listWrap);
             calendarEl.appendChild(box);
         }
 
         // 뒤쪽 빈칸
         const totalCells = firstWeekday + daysInMonth;
         const tailBlanks = (7 - (totalCells % 7)) % 7;
-        for (let i=0;i<tailBlanks;i++){
+        for (let i=0; i<tailBlanks; i++) {
             const blank = document.createElement('div');
-            blank.className = 'h-40 rounded-2xl';
+            blank.className = 'h-12 rounded-2xl';
             calendarEl.appendChild(blank);
         }
     }
 
+
+
+
     // ======= 삭제 모달 =======
     const modal = document.getElementById('confirmModal');
-    let targetDate = null;
+    const confirmTarget = document.getElementById('confirmTarget');
+    let targetId = null;
 
     document.getElementById('confirmNo').addEventListener('click', () => {
         modal.classList.add('hidden');
-        targetDate = null;
+        targetId = null;
     });
 
     document.getElementById('confirmYes').addEventListener('click', async () => {
-        if (!targetDate) return;
+        if (!targetId) return;
         try {
-            const res = await fetch(`${DELETE_BY_DATE}${targetDate}`, {
+            const res = await fetch(DELETE_BY_ID + targetId, {
                 method: 'DELETE',
                 headers: authHeaders(),
             });
-            if (!res.ok) throw new Error('삭제 실패');
-            alert(`${targetDate} 예약이 삭제되었습니다.`);
+            if (!res.ok) throw new Error('삭제 실패 (HTTP ' + res.status + ')');
             modal.classList.add('hidden');
-            // 삭제 후 월 데이터 재조회+렌더
+            targetId = null;
             await loadMonthSchedules(viewYear, viewMonth);
             renderCalendar();
         } catch (err) {
-            alert('삭제 중 오류 발생: ' + err.message);
+            alert('삭제 중 오류: ' + (err.message || '알 수 없는 오류'));
             modal.classList.add('hidden');
-        } finally {
-            targetDate = null;
+            targetId = null;
         }
     });
 
-    // ======= 이벤트 바인딩(위임) =======
+    // ======= 이벤트 위임 =======
     calendarEl.addEventListener('click', (e) => {
         const addBtn = e.target.closest('.addBtn');
         if (addBtn) {
@@ -274,21 +296,29 @@
             location.href = `/classSchedule-createForm?date=${date}`;
             return;
         }
+
+        const editBtn = e.target.closest('.editBtn');
+        if (editBtn) {
+            const id = editBtn.dataset.id;
+            location.href = `${EDIT_FORM_PATH}?id=${id}`;
+            return;
+        }
+
         const delBtn = e.target.closest('.delBtn');
         if (delBtn) {
-            const box = delBtn.closest('[data-date]');
-            if (!box) return;
-            targetDate = box.dataset.date;
+            targetId = delBtn.dataset.id;
+            const title = delBtn.dataset.title || '';
+            const date  = delBtn.dataset.date  || '';
+            confirmTarget.textContent = `[${date}] ${title}`;
             modal.classList.remove('hidden');
         }
     });
 
-    // ======= 네비 & 셀렉트 =======
+    // ======= 네비/셀렉트 =======
     async function redrawMonth() {
         await loadMonthSchedules(viewYear, viewMonth);
         renderCalendar();
     }
-
     document.getElementById('prevMonth').addEventListener('click', async () => {
         if (viewMonth === 0) { viewYear--; viewMonth = 11; } else { viewMonth--; }
         await redrawMonth();
@@ -312,6 +342,11 @@
 
     // ======= 초기 로드 =======
     (async function init(){
+        const ym = new URL(location.href).searchParams.get('ym');
+        if (ym && /^(\d{4})-(\d{2})$/.test(ym)) {
+            const [y, m] = ym.split('-').map(Number);
+            viewYear = y; viewMonth = m - 1;
+        }
         yearSelect.value = String(viewYear);
         monthSelect.value = String(viewMonth);
         await loadMonthSchedules(viewYear, viewMonth);

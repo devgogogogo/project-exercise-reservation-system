@@ -256,7 +256,7 @@
 
             // 생성한 날짜의 월로 돌아가기
             const yyyymm = `${y}-${pad(m0+1)}`;
-            setTimeout(()=> location.href = `/classSchedule-calendar?ym=${yyyymm}`, 500);
+            setTimeout(()=> location.href = `/classSchedule-calendar?ym=${yyyymm}`);
         } catch (err) {
             msg.className = 'mb-4 text-sm text-red-600';
             msg.textContent = err.message || '오류가 발생했습니다.';
