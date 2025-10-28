@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>공지 상세</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <style>
+        .preserve {
+            white-space: pre-wrap
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900">
+<header class="sticky top-0 z-20 bg-white/80 backdrop-blur border-b border-slate-200">
+    <div class="max-w-4xl mx-auto px-6 py-3 flex items-center justify-between">
+        <a th:href="@{/notices}" class="text-sm px-3 py-1.5 rounded-xl border bg-white hover:bg-slate-100">← 목록</a>
+        <span class="text-sm text-slate-500">공지 상세</span>
+    </div>
+</header>
+
+<main class="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+    <section class="bg-white border border-slate-200 rounded-2xl shadow-sm">
+        <!-- 상단 제목/메타 -->
+        <div class="px-6 pt-6 pb-4 border-b border-slate-100">
+            <h1 id="title" class="text-2xl font-extrabold tracking-tight mb-2">로딩 중…</h1>
+            <div class="flex items-center text-sm text-slate-500">
+                <span id="writer">작성자: -</span>
+                <time id="when" datetime="" class="ml-auto tabular-nums"></time>
+            </div>
+        </div>
+
+        <!-- 본문 -->
+        <article id="description" class="px-6 py-6 preserve text-slate-800 leading-7">
+            잠시만요…
+        </article>
+        <!-- 댓글 섹션 -->
+        <section id="comments" class="px-6 py-6 border-t border-slate-100">
+            <h2 class="text-base font-semibold text-slate-800 mb-4">댓글</h2>
+
+            <!-- 작성 폼 -->
+            <form id="commentForm" class="mb-6">
+                <label for="commentContent" class="sr-only">댓글 내용</label>
+                <textarea id="commentContent" rows="3"
+                          class="w-full rounded-xl border-slate-300 focus:border-slate-400 focus:ring-0"
+                          placeholder="댓글을 입력하세요. (Enter 줄바꿈, Ctrl+Enter 등록)"></textarea>
+                <div class="mt-2 flex items-center gap-3">
+                    <span id="commentError" class="text-sm text-red-600 hidden"></span>
+                    <button id="commentSubmit" type="submit"
+                            class="ml-auto px-4 py-2 rounded-xl border bg-white hover:bg-slate-50 disabled:opacity-50">
+                        등록
+                    </button>
+                </div>
+            </form>
+
+            <!-- 리스트 -->
+            <ul id="commentList" class="space-y-4"></ul>
+            <p id="commentEmpty" class="text-sm text-slate-500 hidden">아직 댓글이 없어요.</p>
+        </section>
+        <!-- 하단 액션 -->
+        <div class="px-6 pb-6">
+            <a th:href="@{/notices}" class="px-4 py-2 rounded-xl border bg-white hover:bg-slate-50">목록</a>
+        </div>
+    </section>
+
+    <!-- 에러 -->
+    <p id="error" class="hidden mt-4 text-sm text-red-600"></p>
+
+</main>
+
+<script>
+    // -------- 유틸: 다양한 형태(문자열/배열/객체) 날짜를 "yyyy-MM-dd HH:mm"으로 표기
+    const pad = n => String(n).padStart(2, '0');
+
+    function fmtDateTime(v) {
+        if (!v) return '';
+        // 1) 문자열: "2025-10-27 13:45" or ISO "2025-10-27T13:45:00"
+        if (typeof v === 'string') {
+            // 공백/초단위 제거 정도만 보정
+            const s = v.replace('T', ' ').slice(0, 16);
+            // yyyy-MM-dd HH:mm 형태면 그대로
+            if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(s)) return s;
+            const d = new Date(v);
+            if (!isNaN(d.getTime()))
+                return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            return s;
+        }
+        // 2) 배열: [yyyy,MM,dd,HH,mm,ss]
+        if (Array.isArray(v)) {
+            const [y, M, d, H = 0, m = 0] = v;
+            if (y && M && d) return `${y}-${pad(M)}-${pad(d)} ${pad(H)}:${pad(m)}`;
+            return '';
+        }
+        // 3) 객체: {year, monthValue, dayOfMonth, hour, minute ...}
+        if (typeof v === 'object') {
+            const y = v.year ?? v.y;
+            const M = v.monthValue ?? v.month;
+            const d = v.dayOfMonth ?? v.day;
+            const H = v.hour ?? 0;
+            const m = v.minute ?? 0;
+            if (y && M && d) return `${y}-${pad(M)}-${pad(d)} ${pad(H)}:${pad(m)}`;
+        }
+        return '';
+    }
+
+    function $(id) {
+        return document.getElementById(id);
+    }
+
+    const noticeId = location.pathname.split('/').filter(Boolean).pop();
+
+    async function load() {
+        // ===== 댓글 =====
+        const $$ = id => document.getElementById(id);
+        const listEl = $$('commentList');
+        const emptyEl = $$('commentEmpty');
+        const formEl = $$('commentForm');
+        const taEl = $$('commentContent');
+        const submitEl = $$('commentSubmit');
+        const errEl = $$('commentError');
+
+// 배열 또는 Page<{...}> 모두 지원
+        function normalizeComments(payload) {
+            if (!payload) return [];
+            if (Array.isArray(payload)) return payload;
+            if (Array.isArray(payload.content)) return payload.content; // Spring Page
+            return [];
+        }
+
+// XSS 간단 방어
+        function esc(s) {
+            return String(s ?? '')
+                .replaceAll('&', '&amp;').replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;').replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function renderItem(c){
+            // 백엔드 DTO 추정 필드
+            const id       = c.commentId ?? c.id;                     // 댓글 PK
+            const nickname = c.nickname ?? c.user?.nickname ?? '-';
+            const when     = fmtDateTime(c.createdAt ?? c.modifiedAt ?? c.updatedAt);
+            const text     = c.description ?? c.content ?? '';
+
+            const li = document.createElement('li');
+            li.className = 'rounded-xl border border-slate-200 bg-white';
+            li.dataset.id = id;
+
+            li.innerHTML = `
+    <div class="px-4 py-3">
+      <div class="flex items-center text-sm text-slate-500">
+        <span class="font-medium text-slate-700">${esc(nickname)}</span>
+        <time class="ml-auto tabular-nums">${when || ''}</time>
+      </div>
+
+      <!-- 본문 / 편집 전 -->
+      <p class="preserve leading-6 text-slate-800 mt-2 comment-view">${esc(text)}</p>
+
+      <!-- 편집 중 UI (초기 숨김) -->
+      <div class="mt-2 hidden comment-edit">
+        <textarea rows="3"
+          class="w-full rounded-xl border-slate-300 focus:border-slate-400 focus:ring-0 edit-textarea">${esc(text)}</textarea>
+        <div class="mt-2 flex gap-2 justify-end">
+          <button type="button" class="px-3 py-1.5 rounded-lg border bg-white hover:bg-slate-50 save-btn">저장</button>
+          <button type="button" class="px-3 py-1.5 rounded-lg border bg-white hover:bg-slate-50 cancel-btn">취소</button>
+        </div>
+      </div>
+
+      <!-- 액션: 시간 바로 밑 -->
+      <div class="mt-2 flex gap-2 justify-end text-sm">
+        <button type="button" class="px-3 py-1.5 rounded-lg border bg-white hover:bg-slate-50 edit-btn">수정</button>
+        <button type="button" class="px-3 py-1.5 rounded-lg border bg-white hover:bg-slate-50 delete-btn">삭제</button>
+      </div>
+    </div>
+  `;
+
+            // 버튼 핸들러
+            const editBtn   = li.querySelector('.edit-btn');
+            const delBtn    = li.querySelector('.delete-btn');
+            const saveBtn   = li.querySelector('.save-btn');
+            const cancelBtn = li.querySelector('.cancel-btn');
+
+            editBtn.addEventListener('click', () => enterEditMode(li));
+            cancelBtn.addEventListener('click', () => exitEditMode(li));
+            saveBtn.addEventListener('click', async () => {
+                const ta = li.querySelector('.edit-textarea');
+                await saveEdit(li, ta.value.trim());
+            });
+            delBtn.addEventListener('click', async () => {
+                if (!confirm('이 댓글을 삭제할까요?')) return;
+                await deleteComment(li);
+            });
+
+            return li;
+        }
+        function enterEditMode(li){
+            li.querySelector('.comment-view').classList.add('hidden');
+            li.querySelector('.comment-edit').classList.remove('hidden');
+        }
+
+        function exitEditMode(li){
+            li.querySelector('.comment-edit').classList.add('hidden');
+            li.querySelector('.comment-view').classList.remove('hidden');
+        }
+
+        async function saveEdit(li, newText){
+            const id = li.dataset.id;
+            if (!newText) { alert('내용을 입력하세요.'); return; }
+
+            // PATCH로 시도 (필요 시 백엔드가 PUT만 받으면 method:'PUT'로 바꿔줘)
+            const res = await fetch(`/api/notices/${noticeId}/comments/${id}`, {
+                method: 'PUT',
+                credentials: 'include',
+                headers: { 'Content-Type':'application/json' },
+                body: JSON.stringify({ description: newText }) // 엔티티 필드명에 맞춤
+            });
+            if (!res.ok) {
+                alert('수정 실패 (HTTP ' + res.status + ')');
+                return;
+            }
+            // 화면 갱신
+            li.querySelector('.comment-view').textContent = newText;
+            exitEditMode(li);
+        }
+
+        async function deleteComment(li){
+            const id = li.dataset.id;
+            const res = await fetch(`/api/notices/${noticeId}/comments/${id}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            if (!res.ok) {
+                alert('삭제 실패 (HTTP ' + res.status + ')');
+                return;
+            }
+            li.remove();
+        }
+
+
+
+        async function loadComments() {
+            errEl.classList.add('hidden');
+            errEl.textContent = '';
+            listEl.innerHTML = '';
+            emptyEl.classList.add('hidden');
+            try {
+                const res = await fetch(`/api/notices/${noticeId}/comments`, {credentials: 'include'});
+                if (!res.ok) throw new Error('댓글 불러오기 실패 (HTTP ' + res.status + ')');
+                const data = await res.json();
+                const items = normalizeComments(data);
+
+                if (items.length === 0) {
+                    emptyEl.classList.remove('hidden');
+                    return;
+                }
+                const frag = document.createDocumentFragment();
+                items.forEach(c => frag.appendChild(renderItem(c)));
+                listEl.appendChild(frag);
+            } catch (e) {
+                errEl.textContent = e.message || '댓글을 불러오지 못했습니다.';
+                errEl.classList.remove('hidden');
+            }
+        }
+
+// 등록
+        formEl.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const description = taEl.value.trim();        // ★ 필드명 description (엔티티/DTO에 맞춤)
+            if (!description) {
+                errEl.textContent = '내용을 입력하세요.';
+                errEl.classList.remove('hidden');
+                taEl.focus();
+                return;
+            }
+            errEl.classList.add('hidden');
+            errEl.textContent = '';
+            submitEl.disabled = true;
+
+            try {
+                const res = await fetch(`/api/notices/${noticeId}/comments`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({description})      // ★ CreateCommentRequest에 맞춤
+                });
+                if (!res.ok) throw new Error('등록 실패 (HTTP ' + res.status + ')');
+
+                const saved = await res.json();
+                listEl.prepend(renderItem(saved));           // 새 댓글을 상단에 추가
+                emptyEl.classList.add('hidden');
+                taEl.value = '';
+            } catch (e2) {
+                errEl.textContent = e2.message || '댓글 등록 중 오류가 발생했습니다.';
+                errEl.classList.remove('hidden');
+            } finally {
+                submitEl.disabled = false;
+            }
+        });
+
+// Ctrl+Enter로 등록
+        taEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) formEl.requestSubmit();
+        });
+
+// 페이지 진입 시 댓글도 로드
+        loadComments();
+
+        try {
+            const res = await fetch(`/api/notices/${noticeId}`, {credentials: 'include'});
+            if (!res.ok) {
+                if (res.status === 404) throw new Error('해당 공지를 찾을 수 없습니다. (404)');
+                throw new Error('불러오기 실패 (HTTP ' + res.status + ')');
+            }
+            // 기대 스키마: { noticeId, nickname, title, description, modifiedAt }
+            const data = await res.json();
+
+            $('title').textContent = data.title || '(제목 없음)';
+            $('writer').textContent = `작성자: ${data.nickname ?? '-'}`;
+
+            const when = fmtDateTime(data.modifiedAt ?? data.updatedAt ?? data.createdAt);
+            if (when) {
+                $('when').textContent = when;
+                $('when').setAttribute('datetime', when);
+            } else {
+                $('when').textContent = '';
+            }
+
+            $('description').textContent = data.description ?? '';
+        } catch (e) {
+            $('error').textContent = e.message || '오류가 발생했습니다.';
+            $('error').classList.remove('hidden');
+        }
+    }
+
+    load();
+</script>
+</body>
+</html>
