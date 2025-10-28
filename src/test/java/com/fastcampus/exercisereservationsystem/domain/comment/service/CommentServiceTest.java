@@ -1,13 +1,11 @@
 package com.fastcampus.exercisereservationsystem.domain.comment.service;
 
-import com.fastcampus.exercisereservationsystem.common.exception.BizException;
 import com.fastcampus.exercisereservationsystem.domain.comment.dto.request.CreateCommentRequest;
 import com.fastcampus.exercisereservationsystem.domain.comment.dto.request.UpdateCommentRequest;
 import com.fastcampus.exercisereservationsystem.domain.comment.dto.response.CreateCommentResponse;
 import com.fastcampus.exercisereservationsystem.domain.comment.dto.response.GetCommentListResponse;
 import com.fastcampus.exercisereservationsystem.domain.comment.dto.response.UpdateCommentResponse;
 import com.fastcampus.exercisereservationsystem.domain.comment.entity.CommentEntity;
-import com.fastcampus.exercisereservationsystem.domain.comment.exception.CommentErrorCode;
 import com.fastcampus.exercisereservationsystem.domain.comment.repository.CommentRepository;
 import com.fastcampus.exercisereservationsystem.domain.notice.entity.NoticeEntity;
 import com.fastcampus.exercisereservationsystem.domain.notice.repository.NoticeRepository;
@@ -31,7 +29,6 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 @ActiveProfiles("test")

@@ -73,7 +73,7 @@ class ClassScheduleServiceTest {
         UserEntity userEntity = new UserEntity("이귀현", "닉네임", "test@email.com", "1234", LocalDate.now(), LocalDate.now().plusYears(1));
         userRepository.save(userEntity);
 
-        CreateClassScheduleRequest request = new CreateClassScheduleRequest("classname1", "수업내용1",LocalTime.parse("10:30"), LocalTime.parse("11:30"), LocalDate.parse("2025-10-01"), 12);
+        CreateClassScheduleRequest request = new CreateClassScheduleRequest("classname1", "수업내용1", LocalTime.parse("10:30"), LocalTime.parse("11:30"), LocalDate.parse("2025-10-01"), 12);
         //When
         CreateClassScheduleResponse response = classScheduleService.createClassSchedule(request, userEntity);
 
@@ -129,7 +129,7 @@ class ClassScheduleServiceTest {
         ClassScheduleEntity classScheduleEntity = new ClassScheduleEntity("classname1", "수업내용1", LocalTime.parse("10:30"), LocalTime.parse("11:30"), LocalDate.parse("2025-10-01"), 10, userEntity);
         ClassScheduleEntity save = classScheduleRepository.save(classScheduleEntity);
 
-        UpdateClassScheduleRequest request = new UpdateClassScheduleRequest("classname2", "수업내용2",LocalTime.parse("12:30"), LocalTime.parse("13:30"), LocalDate.parse("2025-10-30"), 12);
+        UpdateClassScheduleRequest request = new UpdateClassScheduleRequest("classname2", "수업내용2", LocalTime.parse("12:30"), LocalTime.parse("13:30"), LocalDate.parse("2025-10-30"), 12);
         Long scheduleId = save.getId();
 
         //When

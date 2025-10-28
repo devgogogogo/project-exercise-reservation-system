@@ -36,7 +36,7 @@ public class ClassScheduleController {
     }
 
     //이 api로 달력에서 조회됨
-    @GetMapping
+    @GetMapping("/calendar")
     public ResponseEntity<List<GetClassScheduleResponse>> getClassSchedules(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end

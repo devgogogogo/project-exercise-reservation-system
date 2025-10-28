@@ -75,7 +75,7 @@ class ReservationServiceTest {
         UserEntity userEntity2 = new UserEntity("유저2", "닉네임2", "user2@email.com", "1234", LocalDate.parse("2025-10-01"), LocalDate.parse("2025-10-30"));
         userRepository.save(userEntity1);
         userRepository.save(userEntity2);
-        ClassScheduleEntity classScheduleEntity = new ClassScheduleEntity("classname1", LocalTime.parse("10:30"), LocalTime.parse("11:30"), LocalDate.parse("2025-10-01"), 10, userEntity1);
+        ClassScheduleEntity classScheduleEntity = new ClassScheduleEntity("classname1", "수업내용1", LocalTime.parse("10:30"), LocalTime.parse("11:30"), LocalDate.parse("2025-10-01"), 10, userEntity1);
         ClassScheduleEntity savedClassSchedule = classScheduleRepository.save(classScheduleEntity);
         //When
         ReservationResponse response1 = reservationService.reservation(savedClassSchedule.getId(), userEntity1);
@@ -97,7 +97,7 @@ class ReservationServiceTest {
         UserEntity userEntity2 = new UserEntity("유저2", "닉네임2", "user2@email.com", "1234", LocalDate.parse("2025-10-01"), LocalDate.parse("2025-10-30"));
         userRepository.save(userEntity1);
         userRepository.save(userEntity2);
-        ClassScheduleEntity classScheduleEntity = new ClassScheduleEntity("classname1", LocalTime.parse("10:30"), LocalTime.parse("11:30"), LocalDate.parse("2025-10-01"), 10, userEntity1);
+        ClassScheduleEntity classScheduleEntity = new ClassScheduleEntity("classname1", "수업내용1", LocalTime.parse("10:30"), LocalTime.parse("11:30"), LocalDate.parse("2025-10-01"), 10, userEntity1);
         ClassScheduleEntity savedClassSchedule = classScheduleRepository.save(classScheduleEntity);
         reservationService.reservation(savedClassSchedule.getId(), userEntity1); //1번째 유저 예약
         reservationService.reservation(savedClassSchedule.getId(), userEntity2); //2번째 유저가 예약
@@ -119,7 +119,7 @@ class ReservationServiceTest {
         UserEntity userEntity2 = new UserEntity("유저2", "닉네임2", "user2@email.com", "1234", LocalDate.parse("2025-10-01"), LocalDate.parse("2025-10-30"));
         userRepository.save(userEntity1);
         userRepository.save(userEntity2);
-        ClassScheduleEntity classScheduleEntity = new ClassScheduleEntity("classname1", LocalTime.parse("10:30"), LocalTime.parse("11:30"), LocalDate.parse("2025-10-01"), 10, userEntity1);
+        ClassScheduleEntity classScheduleEntity = new ClassScheduleEntity("classname1", "수업내용1", LocalTime.parse("10:30"), LocalTime.parse("11:30"), LocalDate.parse("2025-10-01"), 10, userEntity1);
         ClassScheduleEntity savedClassSchedule = classScheduleRepository.save(classScheduleEntity);
         ReservationResponse response1 = reservationService.reservation(savedClassSchedule.getId(), userEntity1);
         ReservationResponse response2 = reservationService.reservation(savedClassSchedule.getId(), userEntity2);
