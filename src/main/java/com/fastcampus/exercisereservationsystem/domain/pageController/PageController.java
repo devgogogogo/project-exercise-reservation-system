@@ -5,7 +5,6 @@ import com.fastcampus.exercisereservationsystem.domain.user.dto.request.CreateUs
 import com.fastcampus.exercisereservationsystem.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -66,34 +65,41 @@ public class PageController {
     }
 
     //<--------------------------수업 프로그램--------------------------------------------->
-    @GetMapping("/program")
-    public String programPage() {
-        return "program";
+
+    //예약 목록페이지
+    @GetMapping("/program-list")
+    public String programList() {
+        return "program-list";
     }
 
-    //<-------예약--------->
+    @GetMapping("/program-createForm")
+    public String programCreateFrom() {
+        return "program-createForm";
+    }
+
+    @GetMapping("/program-detail")
+    public String programDetailPage() {
+        return "program-detail";
+    }
+
+    //<--------------------------예약------------------------------------------------------>
     //예약 달력
     @GetMapping("/classSchedule-calendar")
     public String classScheduleCreate() {
         return "classSchedule-calendar";
     }
+
     //예약 생성폼 페이지
     @GetMapping("/classSchedule-createForm")
     public String classScheduleCreateForm() {
         return "classSchedule-createForm";
     }
 
-    //예약 목록페이지
-    @GetMapping("/classSchedule-list")
-    public String classScheduleList() {
-        return "classSchedule-list";
-    }
-
+    //예약 수정폼
     @GetMapping("/classSchedule-updateForm")
     public String classScheduleUpdateForm() {
         return "classSchedule-updateForm";
     }
-
 
     //<--------------------------내 정보--------------------------------------------->
     //내 정보

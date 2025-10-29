@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>프로그램 생성</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900">
+
+<header class="sticky top-0 bg-white border-b border-slate-200">
+    <div class="max-w-3xl mx-auto px-6 py-3 flex items-center justify-between">
+        <a th:href="@{/}" class="text-sm px-3 py-1.5 rounded-xl border bg-white hover:bg-slate-100">← 홈</a>
+        <span class="text-sm text-slate-500">프로그램 생성 (관리자 전용)</span>
+    </div>
+</header>
+
+<main class="max-w-3xl mx-auto px-6 py-8">
+    <section class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <h1 class="text-2xl font-bold mb-6">프로그램 생성</h1>
+
+        <p id="msg" class="hidden mb-4 text-sm"></p>
+
+        <form id="form" class="space-y-6">
+            <!-- 이름 -->
+            <div>
+                <label for="name" class="block text-sm font-medium text-slate-700">운동 이름</label>
+                <input id="name" type="text" required
+                       class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-400 focus:ring-0"
+                       placeholder="예) 하체 Day, 메트콘 등"/>
+            </div>
+
+            <!-- 설명 -->
+            <div>
+                <label for="desc" class="block text-sm font-medium text-slate-700">설명</label>
+                <textarea id="desc" rows="5"
+                          class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-400 focus:ring-0"
+                          placeholder="운동 구성/라운드/시간 등을 적어주세요."></textarea>
+            </div>
+
+            <!-- 날짜 -->
+            <div>
+                <label for="date" class="block text-sm font-medium text-slate-700">날짜</label>
+                <input id="date" type="date" required
+                       class="mt-1 rounded-xl border-slate-300 focus:border-slate-400 focus:ring-0"/>
+            </div>
+
+            <!-- 액션 -->
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <a href="/program-list" class="px-4 py-2 rounded-xl border bg-white hover:bg-slate-50">취소</a>
+                <button id="submitBtn" type="submit"
+                        class="px-4 py-2 rounded-xl bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-50">생성</button>
+            </div>
+        </form>
+    </section>
+</main>
+
+<script>
+    // ===== 엔드포인트 =====
+    const CREATE_ENDPOINT = '/api/program'; // POST
+
+    // ===== 유틸 =====
+    function authHeaders(){
+        const headers = { 'Content-Type': 'application/json' };
+        const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        return headers;
+    }
+    const pad = n => String(n).padStart(2,'0');
+    const fmtYMD = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+
+    // ===== 초기 날짜 기본값: 오늘 =====
+    (function initDate(){
+        const d = new Date();
+        document.getElementById('date').value = fmtYMD(d);
+    })();
+
+    // ===== 제출 =====
+    const form = document.getElementById('form');
+    const msg  = document.getElementById('msg');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        msg.className = 'hidden'; msg.textContent = '';
+
+        const body = {
+            exerciseName: document.getElementById('name').value.trim(),
+            exerciseDescription: document.getElementById('desc').value.trim(),
+            date: document.getElementById('date').value
+        };
+        if (!body.exerciseName) {
+            msg.className = 'mb-4 text-sm text-red-600';
+            msg.textContent = '운동 이름을 입력하세요.';
+            return;
+        }
+
+        submitBtn.disabled = true;
+        try{
+            const res = await fetch(CREATE_ENDPOINT, {
+                method: 'POST',
+                headers: authHeaders(),
+                credentials: 'include',
+                body: JSON.stringify(body)
+            });
+            if(!res.ok){
+                const t = await res.text().catch(()=> '');
+                throw new Error(`생성 실패 (HTTP ${res.status}) ${t && '- ' + t}`);
+            }
+            const saved = await res.json().catch(()=>null);
+
+            msg.className = 'mb-4 text-sm text-green-600';
+            msg.textContent = '프로그램이 생성되었습니다. 목록으로 이동합니다…';
+            const date = body.date || (saved && saved.date) || '';
+            setTimeout(()=> location.href = `/program-list?date=${encodeURIComponent(date)}`, 600);
+        }catch(err){
+            msg.className = 'mb-4 text-sm text-red-600';
+            msg.textContent = err.message || '오류가 발생했습니다.';
+        }finally{
+            submitBtn.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,10 +1,11 @@
 package com.fastcampus.exercisereservationsystem.domain.program.service;
 
 import com.fastcampus.exercisereservationsystem.common.exception.BizException;
-import com.fastcampus.exercisereservationsystem.domain.program.dto.request.UpdateProgramRequest;
 import com.fastcampus.exercisereservationsystem.domain.program.dto.request.CreateProgramRequest;
+import com.fastcampus.exercisereservationsystem.domain.program.dto.request.UpdateProgramRequest;
 import com.fastcampus.exercisereservationsystem.domain.program.dto.response.CreateProgramResponse;
 import com.fastcampus.exercisereservationsystem.domain.program.dto.response.GetByDateProgramResponse;
+import com.fastcampus.exercisereservationsystem.domain.program.dto.response.GetByIdProgramResponse;
 import com.fastcampus.exercisereservationsystem.domain.program.dto.response.UpdateProgramResponse;
 import com.fastcampus.exercisereservationsystem.domain.program.entity.ProgramEntity;
 import com.fastcampus.exercisereservationsystem.domain.program.exception.ProgramErrorCode;
@@ -33,6 +34,11 @@ public class ProgramService {
     public List<GetByDateProgramResponse> getByDateProgram(LocalDate date) {
         List<ProgramEntity> programEntities = programRepository.findByDate(date);
         return programEntities.stream().map(GetByDateProgramResponse::from).toList();
+    }
+
+    public GetByIdProgramResponse getByIdProgram(long programId) {
+        ProgramEntity programEntity = programRepository.findById(programId).orElseThrow(() -> new BizException(ProgramErrorCode.PROGRAM_NOT_FOUND));
+        return GetByIdProgramResponse.from(programEntity);
     }
 
     @Transactional

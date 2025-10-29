@@ -103,28 +103,34 @@ public class SecurityConfig {
 
                         /* -------------------- 수업 스케줄 API -------------------- */
                         // 조회(월범위 ?start&end 또는 단일 ?date): 로그인 사용자 허용 (원하면 permitAll로 변경)
-                        .requestMatchers(HttpMethod.GET, "/api/classSchedules").hasAnyRole("ADMIN", "USER")
                         .requestMatchers(HttpMethod.GET, "/api/classSchedules/**").hasAnyRole("ADMIN","USER")
-                        // 생성/수정/삭제: ADMIN
+
                         .requestMatchers(HttpMethod.POST, "/api/classSchedules/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/classSchedules/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/classSchedules/**").hasRole("ADMIN")
 
                         /* -------------------- 예약 API (예시) -------------------- */
-                        // ⚠️ 경로 철자 컨트롤러와 일치시킬 것
                         .requestMatchers(HttpMethod.GET, "/api/classSchedules/*/reservation/**").hasRole("USER")
                         .requestMatchers(HttpMethod.POST, "/api/classSchedules/*/reservation/**").hasRole("USER")
+
+                        /* ---------------------예약 프로그램 API (예시) -------------------- */
+                        .requestMatchers(HttpMethod.GET, "/api/program").hasAnyRole("ADMIN","USER")
+                        .requestMatchers(HttpMethod.POST, "/api/program/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/program/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/program/**").hasRole("ADMIN")
 
                         // 날짜별 삭제 엔드포인트가 /api/program?date=... 라면 (실제 컨트롤러 경로 확인)
                         .requestMatchers(HttpMethod.DELETE, "/api/program").hasRole("ADMIN")
 
                         /* -------------------- 뷰(페이지) 접근 제어 -------------------- */
-                        // 수업 캘린더/생성폼: ADMIN 전용 (보기만 사용자도 허용하고 싶으면 hasAnyRole로)
                         .requestMatchers(HttpMethod.GET,"/classSchedule-calendar", "/classSchedule-createForm").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/program-createForm").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET,"/program-list","/program-detail").hasAnyRole("ADMIN","USER")
+
 
                         // 예약 목록(뷰): ADMIN/USER
                         .requestMatchers("/classSchedule-updateForm").hasRole("ADMIN")
-                        .requestMatchers("/classSchedule-list").permitAll()
+
 
                         /* -------------------- 나머지 -------------------- */
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

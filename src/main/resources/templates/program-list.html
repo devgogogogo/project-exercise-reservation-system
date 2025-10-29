@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>프로그램 목록</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900">
+<header class="sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-slate-200">
+    <div class="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
+        <nav class="flex items-center gap-2">
+            <a href="/" class="px-3 py-1.5 rounded-xl border bg-white hover:bg-slate-50">홈</a>
+            <span class="px-3 py-1.5 rounded-xl border bg-slate-100 text-slate-600">프로그램 목록</span>
+        </nav>
+        <a href="/program-createForm"
+           class="px-3 py-1.5 rounded-xl bg-sky-600 text-white hover:bg-sky-700">글쓰기</a>
+    </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-6 pt-8 pb-16">
+    <h1 class="text-2xl font-bold mb-3">프로그램 목록</h1>
+    <p class="text-slate-500 mb-5">제목을 클릭하면 상세 내용을 볼 수 있어요.</p>
+
+    <!-- 날짜 필터 -->
+    <section class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm mb-6">
+        <div class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-2">
+                <label for="date" class="text-sm text-slate-600">날짜</label>
+                <input id="date" type="date"
+                       class="rounded-lg border-slate-300 focus:border-slate-400 focus:ring-0"/>
+            </div>
+            <button id="btnSearch" class="px-3 py-1.5 rounded-lg border bg-white hover:bg-slate-50">
+                조회
+            </button>
+            <button id="btnToday" class="px-3 py-1.5 rounded-lg border bg-white hover:bg-slate-50">
+                오늘
+            </button>
+        </div>
+    </section>
+
+    <!-- 목록 -->
+    <section aria-live="polite">
+        <ul id="list" class="space-y-2"></ul>
+        <div id="empty" class="hidden mt-6 text-center text-slate-500">해당 날짜의 프로그램이 없습니다.</div>
+    </section>
+</main>
+
+<script>
+    // ===== Endpoints =====
+    const LIST_ENDPOINT   = '/api/program';          // GET  /api/program?date=YYYY-MM-DD
+    const DETAIL_PAGE     = (id)=> `/program-detail?id=${id}`;
+
+    // ===== Utils =====
+    const pad = n => String(n).padStart(2,'0');
+    const fmtDate = (isoOrDate) => {
+        if (!isoOrDate) return '-';
+        // 서버가 LocalDate를 문자열로 주면 그대로 표시, 아니면 Date 파싱
+        if (/^\d{4}-\d{2}-\d{2}$/.test(isoOrDate)) return isoOrDate;
+        const d = new Date(isoOrDate);
+        if (isNaN(d.getTime())) return '-';
+        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    };
+    function authHeaders(){
+        const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+        return token ? { 'Authorization': `Bearer ${token}` } : {};
+    }
+
+    // ===== Render =====
+    function renderList(items){
+        const ul = document.getElementById('list');
+        const empty = document.getElementById('empty');
+        ul.innerHTML = '';
+
+        if (!items || items.length === 0){
+            empty.classList.remove('hidden');
+            return;
+        }
+        empty.classList.add('hidden');
+
+        items.forEach(it=>{
+            const id   = it.id ?? it.programId;
+            const name = it.exerciseName ?? it.title ?? '(제목 없음)';
+            const date = fmtDate(it.date ?? it.createdAt);
+            const author = it.author ?? it.writer ?? '관리자';
+
+            const li = document.createElement('li');
+            li.className = 'rounded-xl border border-slate-200 bg-white hover:bg-slate-50';
+            li.innerHTML = `
+        <a href="${DETAIL_PAGE(id)}" class="flex items-center justify-between gap-3 px-4 py-3">
+          <span class="truncate">${name}</span>
+          <span class="shrink-0 text-sm text-slate-500">by ${author} · ${date}</span>
+        </a>
+      `;
+            ul.appendChild(li);
+        });
+    }
+
+    // ===== Fetch =====
+    async function fetchList(dateStr){
+        const params = new URLSearchParams();
+        if (dateStr) params.set('date', dateStr);
+        const url = `${LIST_ENDPOINT}?${params.toString()}`;
+
+        try{
+            const res = await fetch(url, { headers: { Accept:'application/json', ...authHeaders() }});
+            if (!res.ok) throw new Error('목록 조회 실패');
+            const data = await res.json();
+            const items = Array.isArray(data) ? data : (data.content || []);
+            renderList(items);
+        }catch(e){
+            document.getElementById('list').innerHTML =
+                '<li class="rounded-xl border border-dashed border-slate-300 bg-white/50 px-4 py-6 text-center text-slate-400">데이터를 불러올 수 없습니다.</li>';
+            document.getElementById('empty').classList.add('hidden');
+        }
+    }
+
+    // ===== Events =====
+    document.getElementById('btnSearch').addEventListener('click', ()=>{
+        fetchList(document.getElementById('date').value);
+    });
+    document.getElementById('btnToday').addEventListener('click', ()=>{
+        const d = new Date();
+        const v = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+        document.getElementById('date').value = v;
+        fetchList(v);
+    });
+
+    // ===== Init (오늘 날짜 기본 조회) =====
+    (function init(){
+        const qd = new URL(location.href).searchParams.get('date');
+        const d = qd ? new Date(qd) : new Date();
+        const v = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+        document.getElementById('date').value = v;
+        fetchList(v);
+    })();
+</script>
+</body>
+</html>

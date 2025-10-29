@@ -4,6 +4,7 @@ import com.fastcampus.exercisereservationsystem.domain.program.dto.request.Creat
 import com.fastcampus.exercisereservationsystem.domain.program.dto.request.UpdateProgramRequest;
 import com.fastcampus.exercisereservationsystem.domain.program.dto.response.CreateProgramResponse;
 import com.fastcampus.exercisereservationsystem.domain.program.dto.response.GetByDateProgramResponse;
+import com.fastcampus.exercisereservationsystem.domain.program.dto.response.GetByIdProgramResponse;
 import com.fastcampus.exercisereservationsystem.domain.program.dto.response.UpdateProgramResponse;
 import com.fastcampus.exercisereservationsystem.domain.program.service.ProgramService;
 import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
@@ -42,6 +43,13 @@ public class ProgramController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         List<GetByDateProgramResponse> responseList = programService.getByDateProgram(date);
         return ResponseEntity.ok(responseList);
+    }
+
+    @GetMapping("/{programId}")
+    public ResponseEntity<GetByIdProgramResponse> getByIdProgram(
+            @PathVariable long programId) {
+        GetByIdProgramResponse response = programService.getByIdProgram(programId);
+        return ResponseEntity.ok(response);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
