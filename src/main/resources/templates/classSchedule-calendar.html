@@ -6,18 +6,13 @@
     <title>예약 관리</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
     <style>
-        /* 셀 크기/스크롤 영역 키움 */
-        .day-scroll{max-height:12rem; overflow:auto;}
-        .no-scrollbar::-webkit-scrollbar{display:none;}
-        .no-scrollbar{-ms-overflow-style:none; scrollbar-width:none;}
-        .btn-icon{font-size:.9rem}
-        /* 캘린더 폰트/간격 업 */
-        .cal-title{font-size:1.1rem; font-weight:700;}
-        .cal-week{font-size:.95rem;}
+        .day-scroll { max-height: 12rem; overflow: auto; }
+        .no-scrollbar::-webkit-scrollbar { display:none; }
+        .no-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
+        .btn-icon { font-size:.9rem }
     </style>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900">
-
 <header class="sticky top-0 bg-white border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <a th:href="@{/}" class="text-sm px-3 py-1.5 rounded-xl border bg-white hover:bg-slate-100">← 홈</a>
@@ -28,7 +23,7 @@
 <main class="max-w-8xl mx-auto px-6 py-8">
     <section class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
         <div class="flex flex-wrap items-center gap-4 mb-6">
-            <h1 class="cal-title">예약 관리</h1>
+            <h1 class="text-xl font-bold">예약 관리</h1>
 
             <div class="flex items-center gap-2 ml-auto">
                 <button id="prevMonth" class="px-3 py-1.5 rounded-lg border hover:bg-slate-50">〈</button>
@@ -51,13 +46,12 @@
         </div>
 
         <!-- 요일 헤더 -->
-        <div class="grid grid-cols-7 text-center cal-week font-semibold text-slate-600 mb-3">
+        <div class="grid grid-cols-7 text-center text-sm font-semibold text-slate-600 mb-3">
             <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
         </div>
 
-        <!-- 셀 크기 확장: gap 더 넓게, 셀 높이 h-72 -->
-         <!-- 기본 5열(넓음) → 큰 화면에서 6/7열로 점진 확대 -->
-        <div id="calendar" class="grid grid-cols-2 lg:grid-cols-6 2xl:grid-cols-7 gap-5"></div>
+        <!-- 달력 -->
+        <div id="calendar" class="grid grid-cols-7 gap-5"></div>
     </section>
 </main>
 
@@ -74,12 +68,13 @@
 </div>
 
 <script>
-    // ======= 설정 =======
-    const LIST_ENDPOINT   = '/api/classSchedules/calendar'; // ?start=YYYY-MM-DD&end=YYYY-MM-DD
-    const DELETE_BY_ID    = '/api/classSchedules/';         // + {id}
-    const EDIT_FORM_PATH  = '/classSchedule-editForm';      // 추후 구현 예정
+    /* ===== 설정 ===== */
+    const LIST_ENDPOINT  = '/api/classSchedules/calendar';   // ?start=YYYY-MM-DD&end=YYYY-MM-DD
+    const DELETE_BY_ID   = '/api/classSchedules/';           // + {id}
+    const CREATE_FORM    = '/classSchedule-createForm';
+    const UPDATE_FORM    = '/classSchedule-updateForm';      // + ?id=&ym=
 
-    // ======= 관리자 가드(보조) =======
+    /* ===== 관리자 가드(보조) ===== */
     async function guardAdmin() {
         try {
             const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
@@ -88,267 +83,202 @@
             if (!res.ok) throw 0;
             const me = await res.json();
             const up = s => String(s||'').toUpperCase();
-            const role = up(me.role);
+            const role  = up(me.role);
             const roles = (me.roles||[]).map(up);
             const auths = (me.authorities||[]).map(a=>up(a.authority||a));
-            const isAdmin = role==='ADMIN'||role==='ROLE_ADMIN'||roles.includes('ADMIN')||roles.includes('ROLE_ADMIN')||auths.includes('ROLE_ADMIN');
+            const isAdmin = role==='ADMIN'||roles.includes('ADMIN')||roles.includes('ROLE_ADMIN')||auths.includes('ROLE_ADMIN');
             if (!isAdmin) location.href = '/login';
         } catch { location.href = '/login'; }
     }
     guardAdmin();
 
-    // ======= 유틸 =======
-    function authHeaders() {
-        const headers = { 'Content-Type': 'application/json' };
+    /* ===== 유틸 ===== */
+    const pad = n => String(n).padStart(2, '0');
+    const yyyyMmDd = (y,m0,d) => `${y}-${pad(m0+1)}-${pad(d)}`;
+    function authHeaders(){
+        const headers = { 'Content-Type':'application/json' };
         const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
         if (token) headers['Authorization'] = `Bearer ${token}`;
         return headers;
     }
-    const pad = n => String(n).padStart(2, '0');
-    const yyyyMmDd = (y,m0,d) => `${y}-${pad(m0+1)}-${pad(d)}`;
 
-    // ======= 상태 =======
+    /* ===== 상태 ===== */
     const calendarEl = document.getElementById('calendar');
     const yearSelect = document.getElementById('yearSelect');
-    const monthSelect = document.getElementById('monthSelect');
-    const prevBtn = document.getElementById('prevMonth');
-    const nextBtn = document.getElementById('nextMonth');
+    const monthSelect= document.getElementById('monthSelect');
+    const prevBtn    = document.getElementById('prevMonth');
+    const nextBtn    = document.getElementById('nextMonth');
     const goTodayBtn = document.getElementById('goToday');
 
     const today = new Date();
-    let viewYear = today.getFullYear();
-    let viewMonth = today.getMonth();
-    let scheduleMap = {}; // {'YYYY-MM-DD': [{...}]}
+    let viewYear  = today.getFullYear();
+    let viewMonth = today.getMonth(); // 0..11
+    let scheduleMap = {}; // {'YYYY-MM-DD': [ {id, className, ...}, ... ]}
 
     (function fillYears(){
-        const start = today.getFullYear() - 5;
-        const end = today.getFullYear() + 5;
-        for (let y = start; y <= end; y++) {
-            const opt = document.createElement('option');
-            opt.value = y; opt.textContent = y;
-            yearSelect.appendChild(opt);
+        const start = today.getFullYear()-5, end=today.getFullYear()+5;
+        for(let y=start; y<=end; y++){
+            const o=document.createElement('option'); o.value=y; o.textContent=y; yearSelect.appendChild(o);
         }
     })();
 
-    // ======= 데이터 =======
-    async function loadMonthSchedules(y, m0) {
-        const start = yyyyMmDd(y, m0, 1);
-        const end = yyyyMmDd(y, m0, new Date(y, m0+1, 0).getDate());
-
+    /* ===== 데이터 ===== */
+    async function loadMonthSchedules(y,m0){
+        const start = yyyyMmDd(y,m0,1);
+        const end   = yyyyMmDd(y,m0, new Date(y,m0+1,0).getDate());
         const url = `${LIST_ENDPOINT}?start=${start}&end=${end}`;
-        try {
-            const res = await fetch(url, { headers: { Accept: 'application/json', ...authHeaders() } });
-            if (!res.ok) throw 0;
-            const data = await res.json();
+        try{
+            const res = await fetch(url, { headers:{ Accept:'application/json', ...authHeaders() } });
+            if(!res.ok) throw 0;
+            const data  = await res.json();
             const items = Array.isArray(data) ? data : (data.content || []);
             scheduleMap = {};
-            for (const it of items) {
-                let dayKey = null;
-                if (it.date) {
-                    dayKey = it.date; // 'YYYY-MM-DD'
-                } else if (it.startAt || it.startDateTime) {
-                    const d = new Date(it.startAt || it.startDateTime);
-                    if (!isNaN(d.getTime())) dayKey = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-                }
-                if (!dayKey) continue;
+            for(const it of items){
+                const dayKey = (typeof it.date==='string') ? it.date : null;
+                if(!dayKey) continue;
                 (scheduleMap[dayKey] ||= []).push(it);
             }
-        } catch {
-            scheduleMap = {};
-        }
+        }catch{ scheduleMap={}; }
     }
 
-    // ======= 렌더 =======
-    function renderCalendar() {
-        // 셀렉터 값 동기화
+    /* ===== 렌더 ===== */
+    function renderCalendar(){
         yearSelect.value = String(viewYear);
-        monthSelect.value = String(viewMonth);
-        calendarEl.innerHTML = '';
+        monthSelect.value= String(viewMonth);
+        calendarEl.innerHTML='';
 
         const first = new Date(viewYear, viewMonth, 1);
-        const last  = new Date(viewYear, viewMonth + 1, 0);
+        const last  = new Date(viewYear, viewMonth+1, 0);
         const firstWeekday = first.getDay();
         const daysInMonth  = last.getDate();
 
-        // 앞쪽 빈칸
-        for (let i=0; i<firstWeekday; i++) {
-            const blank = document.createElement('div');
-            blank.className = 'h-12 rounded-2xl';
-            calendarEl.appendChild(blank);
-        }
+        for(let i=0;i<firstWeekday;i++){ const b=document.createElement('div'); b.className='h-44 rounded-2xl'; calendarEl.appendChild(b); }
 
-        // 날짜별 셀 생성
-        for (let d=1; d<=daysInMonth; d++) {
+        for(let d=1; d<=daysInMonth; d++){
             const dateStr = yyyyMmDd(viewYear, viewMonth, d);
-            const isToday = (dateStr === yyyyMmDd(today.getFullYear(), today.getMonth(), today.getDate()));
+            const isToday = dateStr === yyyyMmDd(today.getFullYear(), today.getMonth(), today.getDate());
 
             const box = document.createElement('div');
-            box.className = 'border rounded-2xl p-4 flex flex-col items-stretch justify-start h-60 text-left relative';
+            box.className = 'border rounded-2xl p-3 flex flex-col items-stretch justify-start h-44 text-left';
             box.dataset.date = dateStr;
 
-            // 상단 (날짜 + +버튼)
             const head = document.createElement('div');
-            head.className = 'flex items-center justify-between mb-3';
+            head.className='flex items-center justify-between mb-2';
             head.innerHTML = `
-      <span class="font-semibold ${isToday ? 'text-sky-600' : ''}">${d}</span>
-      <button class="addBtn text-green-600 text-xl leading-none" title="수업 생성">＋</button>
-    `;
+        <span class="font-semibold ${isToday?'text-sky-600':''}">${d}</span>
+        <button class="addBtn text-green-600 text-xl leading-none" title="수업 생성">＋</button>
+      `;
             box.appendChild(head);
 
-            // 수업 리스트 영역
             const listWrap = document.createElement('div');
-            listWrap.className = 'day-scroll no-scrollbar space-y-1';
+            listWrap.className='day-scroll no-scrollbar space-y-1';
             const items = scheduleMap[dateStr] || [];
 
-            // 항목 렌더링
-            if (items.length === 0) {
+            if(items.length===0){
                 const empty = document.createElement('div');
-                empty.className = 'text-sm text-slate-400';
-                empty.textContent = '등록된 수업 없음';
+                empty.className='text-sm text-slate-400';
+                empty.textContent='등록된 수업 없음';
                 listWrap.appendChild(empty);
-            } else {
+            }else{
                 const maxShow = 8;
+                items.slice(0,maxShow).forEach(it=>{
+                    const id    = it.id ?? it.classSchedulesId ?? it.classScheduleId ?? it.scheduleId;
+                    const title = it.className ?? it.classname ?? it.title ?? '(제목 없음)';
 
-                items.slice(0, maxShow).forEach(it => {
-                    // ✅ 서버 응답 필드 그대로 사용
-                    const title = it.className || '(제목 없음)';
-
-                    // ✅ 가로형 배치: 수업명 왼쪽, 수정/삭제 오른쪽
                     const row = document.createElement('div');
-                    row.className =
-                        'flex items-center justify-between px-3 py-1.5 rounded-lg bg-slate-100 text-slate-800';
+                    row.className = 'flex items-center gap-2 text-[0.95rem] px-2 py-1.5 rounded-lg bg-slate-100 text-slate-800';
                     row.innerHTML = `
-            <span class="truncate text-[0.95rem]">${title}</span>
-            <div class="flex gap-2">
-                <button class="editBtn px-2 py-0.5 rounded border hover:bg-white" data-id="${it.id ?? it.classScheduleId}" title="수정">수정</button>
-                <button class="delBtn px-2 py-0.5 rounded border hover:bg-white text-red-600"
-                    data-id="${it.id ?? it.classScheduleId}"
-                    data-title="${title}"
-                    data-date="${dateStr}"
-                    title="삭제">삭제</button>
+            <span class="flex-1 min-w-0 whitespace-nowrap overflow-hidden text-ellipsis" title="${title}">
+              ${title}
+            </span>
+            <div class="ml-auto flex gap-2 shrink-0">
+              <button class="editBtn btn-icon px-2 py-0.5 rounded border hover:bg-white" data-id="${id}" title="수정">수정</button>
+              <button class="delBtn  btn-icon px-2 py-0.5 rounded border hover:bg-white text-red-600"
+                      data-id="${id}" data-title="${title}" data-date="${dateStr}" title="삭제">삭제</button>
             </div>
-        `;
+          `;
                     listWrap.appendChild(row);
                 });
-
-                if (items.length > maxShow) {
-                    const more = document.createElement('div');
-                    more.className = 'text-xs text-slate-500';
-                    more.textContent = `+ ${items.length - maxShow}개 더 있음`;
-                    listWrap.appendChild(more);
+                if(items.length>maxShow){
+                    const more=document.createElement('div'); more.className='text-xs text-slate-500';
+                    more.textContent=`+ ${items.length-maxShow}개 더 있음`; listWrap.appendChild(more);
                 }
             }
-
 
             box.appendChild(listWrap);
             calendarEl.appendChild(box);
         }
 
-        // 뒤쪽 빈칸
-        const totalCells = firstWeekday + daysInMonth;
-        const tailBlanks = (7 - (totalCells % 7)) % 7;
-        for (let i=0; i<tailBlanks; i++) {
-            const blank = document.createElement('div');
-            blank.className = 'h-12 rounded-2xl';
-            calendarEl.appendChild(blank);
-        }
+        const totalCells = firstWeekday+daysInMonth;
+        const tailBlanks = (7-(totalCells%7))%7;
+        for(let i=0;i<tailBlanks;i++){ const b=document.createElement('div'); b.className='h-44 rounded-2xl'; calendarEl.appendChild(b); }
     }
 
-
-
-
-    // ======= 삭제 모달 =======
+    /* ===== 삭제 모달 ===== */
     const modal = document.getElementById('confirmModal');
     const confirmTarget = document.getElementById('confirmTarget');
     let targetId = null;
 
-    document.getElementById('confirmNo').addEventListener('click', () => {
-        modal.classList.add('hidden');
-        targetId = null;
+    document.getElementById('confirmNo').addEventListener('click', ()=>{
+        modal.classList.add('hidden'); targetId=null;
     });
-
-    document.getElementById('confirmYes').addEventListener('click', async () => {
-        if (!targetId) return;
-        try {
-            const res = await fetch(DELETE_BY_ID + targetId, {
-                method: 'DELETE',
-                headers: authHeaders(),
-            });
-            if (!res.ok) throw new Error('삭제 실패 (HTTP ' + res.status + ')');
-            modal.classList.add('hidden');
-            targetId = null;
+    document.getElementById('confirmYes').addEventListener('click', async ()=>{
+        if(!targetId) return;
+        try{
+            const res = await fetch(DELETE_BY_ID + targetId, { method:'DELETE', headers:authHeaders() });
+            if(!res.ok) throw new Error('삭제 실패 (HTTP '+res.status+')');
+            modal.classList.add('hidden'); targetId=null;
             await loadMonthSchedules(viewYear, viewMonth);
             renderCalendar();
-        } catch (err) {
-            alert('삭제 중 오류: ' + (err.message || '알 수 없는 오류'));
-            modal.classList.add('hidden');
-            targetId = null;
+        }catch(err){
+            alert('삭제 중 오류: ' + (err.message||'알 수 없는 오류'));
+            modal.classList.add('hidden'); targetId=null;
         }
     });
 
-    // ======= 이벤트 위임 =======
-    calendarEl.addEventListener('click', (e) => {
+    /* ===== 이벤트 위임 ===== */
+    calendarEl.addEventListener('click', (e)=>{
         const addBtn = e.target.closest('.addBtn');
-        if (addBtn) {
-            const box = addBtn.closest('[data-date]');
-            if (!box) return;
+        if(addBtn){
+            const box = addBtn.closest('[data-date]'); if(!box) return;
             const date = box.dataset.date;
-            location.href = `/classSchedule-createForm?date=${date}`;
+            location.href = `${CREATE_FORM}?date=${date}`;
             return;
         }
 
         const editBtn = e.target.closest('.editBtn');
-        if (editBtn) {
+        if(editBtn){
             const id = editBtn.dataset.id;
-            location.href = `${EDIT_FORM_PATH}?id=${id}`;
+            if(!id){ alert('수정할 수업 ID를 찾지 못했습니다.'); return; }
+            const ym = `${viewYear}-${pad(viewMonth+1)}`;
+            location.href = `${UPDATE_FORM}?id=${id}&ym=${ym}`;
             return;
         }
 
         const delBtn = e.target.closest('.delBtn');
-        if (delBtn) {
+        if(delBtn){
             targetId = delBtn.dataset.id;
             const title = delBtn.dataset.title || '';
-            const date  = delBtn.dataset.date  || '';
+            const date  = delBtn.dataset.date || '';
             confirmTarget.textContent = `[${date}] ${title}`;
             modal.classList.remove('hidden');
+            return;
         }
     });
 
-    // ======= 네비/셀렉트 =======
-    async function redrawMonth() {
-        await loadMonthSchedules(viewYear, viewMonth);
-        renderCalendar();
-    }
-    document.getElementById('prevMonth').addEventListener('click', async () => {
-        if (viewMonth === 0) { viewYear--; viewMonth = 11; } else { viewMonth--; }
-        await redrawMonth();
-    });
-    document.getElementById('nextMonth').addEventListener('click', async () => {
-        if (viewMonth === 11) { viewYear++; viewMonth = 0; } else { viewMonth++; }
-        await redrawMonth();
-    });
-    document.getElementById('goToday').addEventListener('click', async () => {
-        viewYear = today.getFullYear(); viewMonth = today.getMonth();
-        await redrawMonth();
-    });
-    yearSelect.addEventListener('change', async () => {
-        viewYear = Number(yearSelect.value);
-        await redrawMonth();
-    });
-    monthSelect.addEventListener('change', async () => {
-        viewMonth = Number(monthSelect.value);
-        await redrawMonth();
-    });
+    /* ===== 네비/셀렉트 ===== */
+    async function redrawMonth(){ await loadMonthSchedules(viewYear, viewMonth); renderCalendar(); }
+    prevBtn.addEventListener('click', async()=>{ if(viewMonth===0){viewYear--; viewMonth=11;} else viewMonth--; await redrawMonth(); });
+    nextBtn.addEventListener('click', async()=>{ if(viewMonth===11){viewYear++; viewMonth=0;} else viewMonth++; await redrawMonth(); });
+    goTodayBtn.addEventListener('click', async()=>{ viewYear=today.getFullYear(); viewMonth=today.getMonth(); await redrawMonth(); });
+    yearSelect.addEventListener('change', async()=>{ viewYear=Number(yearSelect.value); await redrawMonth(); });
+    monthSelect.addEventListener('change', async()=>{ viewMonth=Number(monthSelect.value); await redrawMonth(); });
 
-    // ======= 초기 로드 =======
+    /* ===== 초기 로드 ===== */
     (async function init(){
         const ym = new URL(location.href).searchParams.get('ym');
-        if (ym && /^(\d{4})-(\d{2})$/.test(ym)) {
-            const [y, m] = ym.split('-').map(Number);
-            viewYear = y; viewMonth = m - 1;
-        }
-        yearSelect.value = String(viewYear);
-        monthSelect.value = String(viewMonth);
+        if(ym && /^(\d{4})-(\d{2})$/.test(ym)){ const [y,m]=ym.split('-').map(Number); viewYear=y; viewMonth=m-1; }
+        yearSelect.value=String(viewYear); monthSelect.value=String(viewMonth);
         await loadMonthSchedules(viewYear, viewMonth);
         renderCalendar();
     })();

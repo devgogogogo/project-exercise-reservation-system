@@ -89,6 +89,11 @@ public class PageController {
         return "classSchedule-list";
     }
 
+    @GetMapping("/classSchedule-updateForm")
+    public String classScheduleUpdateForm() {
+        return "classSchedule-updateForm";
+    }
+
 
     //<--------------------------내 정보--------------------------------------------->
     //내 정보

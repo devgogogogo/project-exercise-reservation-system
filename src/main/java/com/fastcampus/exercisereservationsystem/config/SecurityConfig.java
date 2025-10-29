@@ -63,7 +63,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://127.0.0.1:3000"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PATCH", "DELETE"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -74,6 +74,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(auth -> auth
+
                         /* -------------------- 정적/공용 뷰 -------------------- */
                         .requestMatchers(HttpMethod.GET,
                                 "/", "/login", "/signup",
@@ -103,10 +104,10 @@ public class SecurityConfig {
                         /* -------------------- 수업 스케줄 API -------------------- */
                         // 조회(월범위 ?start&end 또는 단일 ?date): 로그인 사용자 허용 (원하면 permitAll로 변경)
                         .requestMatchers(HttpMethod.GET, "/api/classSchedules").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(HttpMethod.GET, "/api/classSchedules/**").hasAnyRole("ADMIN","USER")
                         // 생성/수정/삭제: ADMIN
                         .requestMatchers(HttpMethod.POST, "/api/classSchedules/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/classSchedules/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/classSchedules/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/classSchedules/**").hasRole("ADMIN")
 
                         /* -------------------- 예약 API (예시) -------------------- */
@@ -119,26 +120,25 @@ public class SecurityConfig {
 
                         /* -------------------- 뷰(페이지) 접근 제어 -------------------- */
                         // 수업 캘린더/생성폼: ADMIN 전용 (보기만 사용자도 허용하고 싶으면 hasAnyRole로)
-                        .requestMatchers(HttpMethod.GET, "/classSchedule-calendar", "/classSchedule-createForm").permitAll()
-                        .requestMatchers(HttpMethod.GET,  "/api/classSchedules/**").hasAnyRole("ADMIN","USER")
-                        .requestMatchers(HttpMethod.POST, "/api/classSchedules/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH,"/api/classSchedules/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE,"/api/classSchedules/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET,"/classSchedule-calendar", "/classSchedule-createForm").permitAll()
+
                         // 예약 목록(뷰): ADMIN/USER
+                        .requestMatchers("/classSchedule-updateForm").hasRole("ADMIN")
                         .requestMatchers("/classSchedule-list").permitAll()
 
                         /* -------------------- 나머지 -------------------- */
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
                 )
 
 
                 // CORS (아래 corsConfigurationSource())
                 .cors(Customizer.withDefaults())
-
                 // 세션 X
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 // CSRF: API는 JWT stateless 이므로 전체 제외 (또는 "/api/**"만 제외)
+
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
 
                 // 필터 순서: 예외 먼저, 인증 다음

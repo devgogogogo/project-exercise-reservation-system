@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>수업 수정</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900">
+<header class="sticky top-0 bg-white border-b border-slate-200">
+    <div class="max-w-3xl mx-auto px-6 py-3 flex items-center justify-between">
+        <a id="backLink" href="/classSchedule-calendar" class="text-sm px-3 py-1.5 rounded-xl border bg-white hover:bg-slate-100">← 캘린더</a>
+        <span class="text-sm text-slate-500">수업 수정 (관리자 전용)</span>
+    </div>
+</header>
+
+<main class="max-w-3xl mx-auto px-6 py-8">
+    <section class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <h1 class="text-2xl font-bold mb-6">수업 수정</h1>
+        <p id="msg" class="hidden mb-4 text-sm"></p>
+
+        <form id="form" class="space-y-6">
+            <div>
+                <label for="className" class="block text-sm font-medium text-slate-700">수업 이름</label>
+                <input id="className" type="text" required
+                       class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-400 focus:ring-0"
+                       placeholder="예) 요가 초급반"/>
+            </div>
+
+            <div>
+                <label for="description" class="block text-sm font-medium text-slate-700">설명</label>
+                <textarea id="description" rows="4"
+                          class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-400 focus:ring-0"
+                          placeholder="수업 소개를 적어주세요."></textarea>
+            </div>
+
+            <!-- 날짜 -->
+            <div>
+                <span class="block text-sm font-medium text-slate-700 mb-1">날짜</span>
+                <div class="flex gap-3">
+                    <div class="flex items-center gap-2">
+                        <label for="yearSelect" class="text-sm text-slate-600">연도</label>
+                        <select id="yearSelect" class="rounded-lg border-slate-300"></select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label for="monthSelect" class="text-sm text-slate-600">월</label>
+                        <select id="monthSelect" class="rounded-lg border-slate-300">
+                            <option value="0">1</option><option value="1">2</option><option value="2">3</option>
+                            <option value="3">4</option><option value="4">5</option><option value="5">6</option>
+                            <option value="6">7</option><option value="7">8</option><option value="8">9</option>
+                            <option value="9">10</option><option value="10">11</option><option value="11">12</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label for="daySelect" class="text-sm text-slate-600">일</label>
+                        <select id="daySelect" class="rounded-lg border-slate-300"></select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 시간 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                    <label for="startTime" class="block text-sm font-medium text-slate-700">시작 시간</label>
+                    <select id="startTime" class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-400 focus:ring-0"></select>
+                </div>
+                <div>
+                    <label for="endTime" class="block text-sm font-medium text-slate-700">끝나는 시간</label>
+                    <select id="endTime" class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-400 focus:ring-0"></select>
+                </div>
+            </div>
+
+            <div>
+                <label for="capacity" class="block text-sm font-medium text-slate-700">정원</label>
+                <input id="capacity" type="number" min="1" step="1" required
+                       class="mt-1 w-40 rounded-xl border-slate-300 focus:border-slate-400 focus:ring-0"
+                       placeholder="예) 20"/>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <a id="cancelBtn" href="/classSchedule-calendar" class="px-4 py-2 rounded-xl border bg-white hover:bg-slate-50">취소</a>
+                <button id="submitBtn" type="submit"
+                        class="px-4 py-2 rounded-xl bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-50">수정</button>
+            </div>
+        </form>
+    </section>
+</main>
+
+<script>
+    /* ===== 파라미터 ===== */
+    const params      = new URLSearchParams(location.search);
+    const scheduleId  = params.get('id');                // ★ 반드시 있어야 함
+    const ymParam     = params.get('ym');                // 돌아갈 월
+    if(!scheduleId){ alert('수정할 수업 ID가 없습니다.'); location.replace('/classSchedule-calendar'); }
+
+    // 상단 뒤로가기/취소 링크에 ym 유지
+    const backLink  = document.getElementById('backLink');
+    const cancelBtn = document.getElementById('cancelBtn');
+    if(ymParam){ backLink.href  = `/classSchedule-calendar?ym=${ymParam}`;
+        cancelBtn.href = `/classSchedule-calendar?ym=${ymParam}`; }
+
+    /* ===== 관리자 가드(보조) ===== */
+    async function guardAdmin() {
+        try {
+            const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            const res = await fetch('/api/users/me', { headers, credentials: 'include' });
+            if (!res.ok) throw 0;
+            const me = await res.json();
+            const up = s => String(s||'').toUpperCase();
+            const role  = up(me.role);
+            const roles = (me.roles||[]).map(up);
+            const auths = (me.authorities||[]).map(a=>up(a.authority||a));
+            const isAdmin = role==='ADMIN'||roles.includes('ADMIN')||roles.includes('ROLE_ADMIN')||auths.includes('ROLE_ADMIN');
+            if (!isAdmin) location.href = '/login';
+        } catch { location.href = '/login'; }
+    }
+    guardAdmin();
+
+    /* ===== DOM ===== */
+    const form = document.getElementById('form');
+    const msg  = document.getElementById('msg');
+    const submitBtn = document.getElementById('submitBtn');
+
+    const classNameEl   = document.getElementById('className');
+    const descriptionEl = document.getElementById('description');
+    const yearEl  = document.getElementById('yearSelect');
+    const monthEl = document.getElementById('monthSelect');
+    const dayEl   = document.getElementById('daySelect');
+    const startEl = document.getElementById('startTime');
+    const endEl   = document.getElementById('endTime');
+    const capacityEl = document.getElementById('capacity');
+
+    /* ===== 유틸 ===== */
+    function authHeaders(){
+        const headers = { 'Content-Type':'application/json' };
+        const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        return headers;
+    }
+    const pad = n => String(n).padStart(2,'0');
+    function toYm(y,m0){ return `${y}-${pad(m0+1)}`; }
+
+    /* ===== 날짜/시간 셀렉트 채우기 ===== */
+    (function fillYears(){
+        const today = new Date();
+        for(let y=today.getFullYear()-5; y<=today.getFullYear()+5; y++){
+            const o=document.createElement('option'); o.value=y; o.textContent=y; yearEl.appendChild(o);
+        }
+    })();
+
+    function fillDays(y,m0,selected){
+        dayEl.innerHTML='';
+        const last = new Date(y,m0+1,0).getDate();
+        for(let d=1; d<=last; d++){
+            const o=document.createElement('option'); o.value=d; o.textContent=d; dayEl.appendChild(o);
+        }
+        dayEl.value = String(Math.min(selected||1, last));
+    }
+
+    (function fillTimes(){
+        function fill(sel){
+            sel.innerHTML='';
+            for(let h=5; h<=23; h++){
+                for(const m of [0,30]){
+                    const v=`${pad(h)}:${pad(m)}`;
+                    const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o);
+                }
+            }
+        }
+        fill(startEl); fill(endEl);
+    })();
+
+    // 기본값: 오늘/09:00~10:00
+    const now = new Date();
+    yearEl.value = String(now.getFullYear());
+    monthEl.value= String(now.getMonth());
+    fillDays(Number(yearEl.value), Number(monthEl.value), now.getDate());
+    startEl.value='09:00'; endEl.value='10:00';
+
+    yearEl.addEventListener('change', ()=> fillDays(Number(yearEl.value), Number(monthEl.value), Number(dayEl.value||1)));
+    monthEl.addEventListener('change', ()=> fillDays(Number(yearEl.value), Number(monthEl.value), Number(dayEl.value||1)));
+
+    /* ===== (선택) 단건 조회로 초기값 채우기 =====
+       백엔드에 GET /api/classSchedules/{id} 가 있다면 아래 주석을 풀어 사용하세요.
+
+    (async function preload() {
+      try{
+        const res = await fetch(`/api/classSchedules/${scheduleId}`, { headers:authHeaders() });
+        if(!res.ok) return; // 없다고 실패 아님
+        const it = await res.json();
+
+        if(it.className)   classNameEl.value = it.className;
+        if(it.description) descriptionEl.value = it.description;
+
+        if(it.date){ // "YYYY-MM-DD"
+          const [y, m, d] = it.date.split('-').map(Number);
+          yearEl.value=String(y); monthEl.value=String(m-1); fillDays(y, m-1, d);
+        }
+        if(it.startAt) startEl.value = String(it.startAt).slice(0,5);
+        if(it.endAt)   endEl.value   = String(it.endAt).slice(0,5);
+        if(it.capacity) capacityEl.value = it.capacity;
+      }catch{}
+    })();
+    */
+
+    /* ===== 제출 ===== */
+    form.addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        msg.className='hidden'; msg.textContent='';
+
+        if(!classNameEl.value.trim()){
+            msg.className='mb-4 text-sm text-red-600'; msg.textContent='수업 이름을 입력하세요.'; classNameEl.focus(); return;
+        }
+        if(Number(capacityEl.value) <= 0){
+            msg.className='mb-4 text-sm text-red-600'; msg.textContent='정원은 1 이상이어야 합니다.'; capacityEl.focus(); return;
+        }
+        const start = startEl.value, end = endEl.value;
+        if(start >= end){
+            msg.className='mb-4 text-sm text-red-600'; msg.textContent='끝나는 시간은 시작 시간보다 늦어야 합니다.'; endEl.focus(); return;
+        }
+
+        const y = Number(yearEl.value), m0 = Number(monthEl.value), d=Number(dayEl.value);
+        const body = {
+            className:   classNameEl.value.trim(),
+            description: descriptionEl.value.trim(),
+            startTime:   start,                    // LocalTime "HH:mm"
+            endTime:     end,                      // LocalTime "HH:mm"
+            date:        `${y}-${pad(m0+1)}-${pad(d)}`, // LocalDate "YYYY-MM-DD"
+            capacity:    Number(capacityEl.value)
+        };
+
+        submitBtn.disabled=true;
+        try{
+            const res = await fetch(`/api/classSchedules/${scheduleId}`, {
+                method:'PUT',
+                headers:authHeaders(),
+                credentials:'include',
+                body: JSON.stringify(body)
+            });
+            if(!res.ok){
+                const text = await res.text().catch(()=> '');
+                throw new Error(`수정 실패 (HTTP ${res.status}) ${text && '- '+text}`);
+            }
+            msg.className='mb-4 text-sm text-green-600';
+            msg.textContent='수업이 수정되었습니다. 캘린더로 이동합니다…';
+            const ym = ymParam || toYm(y, m0);
+            setTimeout(()=> location.href = `/classSchedule-calendar?ym=${ym}`, 600);
+        }catch(err){
+            msg.className='mb-4 text-sm text-red-600';
+            msg.textContent = err.message || '오류가 발생했습니다.';
+        }finally{
+            submitBtn.disabled=false;
+        }
+    });
+</script>
+</body>
+</html>

@@ -105,14 +105,14 @@ class ClassScheduleServiceTest {
 
         //Then
         assertThat(result).hasSize(2); //그래서 2개
-        assertThat(result.get(0).classname()).isEqualTo("classname1");
+        assertThat(result.get(0).className()).isEqualTo("classname1");
         assertThat(result.get(0).startAt()).isEqualTo(LocalTime.parse("10:30"));
         assertThat(result.get(0).endAt()).isEqualTo(LocalTime.parse("11:30"));
         assertThat(result.get(0).date()).isEqualTo(LocalDate.parse("2025-10-01"));
         assertThat(result.get(0).capacity()).isEqualTo(10);
 
         assertThat(result).hasSize(2); //그래서 2개
-        assertThat(result.get(1).classname()).isEqualTo("classname2");
+        assertThat(result.get(1).className()).isEqualTo("classname2");
         assertThat(result.get(1).startAt()).isEqualTo(LocalTime.parse("11:40"));
         assertThat(result.get(1).endAt()).isEqualTo(LocalTime.parse("12:40"));
         assertThat(result.get(1).date()).isEqualTo(LocalDate.parse("2025-10-01"));
@@ -136,7 +136,7 @@ class ClassScheduleServiceTest {
         UpdateClassScheduleResponse response = classScheduleService.updateClassSchedule(request, scheduleId);
         //Then
         assertThat(response).isNotNull();
-        assertThat(response.classname()).isEqualTo("classname2");
+        assertThat(response.className()).isEqualTo("classname2");
         assertThat(response.startTime()).isEqualTo(LocalTime.parse("12:30"));
         assertThat(response.endTime()).isEqualTo(LocalTime.parse("13:30"));
         assertThat(response.date()).isEqualTo(LocalDate.parse("2025-10-30"));

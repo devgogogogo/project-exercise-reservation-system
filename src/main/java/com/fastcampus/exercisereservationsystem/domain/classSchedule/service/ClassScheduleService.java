@@ -49,7 +49,7 @@ public class ClassScheduleService {
     @Transactional
     public UpdateClassScheduleResponse updateClassSchedule(UpdateClassScheduleRequest request,Long classSchedulesId) {
         ClassScheduleEntity classScheduleEntity = classScheduleRepository.findById(classSchedulesId).orElseThrow(() -> new BizException(ClassScheduleErrorCode.SCHEDULE_NOT_FOUND));
-        classScheduleEntity.updateClassSchedule(request.classname(),request.description(),request.startTime(),request.endTime(),request.date(),request.capacity());
+        classScheduleEntity.updateClassSchedule(request.className(),request.description(),request.startTime(),request.endTime(),request.date(),request.capacity());
         classScheduleRepository.save(classScheduleEntity);
         return UpdateClassScheduleResponse.from(classScheduleEntity);
     }

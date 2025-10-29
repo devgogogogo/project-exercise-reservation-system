@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public record GetClassScheduleResponse(
+        Long id,
         String className,
         String description,
         LocalTime startAt,
@@ -15,6 +16,7 @@ public record GetClassScheduleResponse(
 ) {
     public static GetClassScheduleResponse from(ClassScheduleEntity entity) {
         return new GetClassScheduleResponse(
+                entity.getId(),
                 entity.getClassName(),
                 entity.getDescription(),
                 entity.getStartTime(),
