@@ -102,6 +102,20 @@ public class UserController {
         return ResponseEntity.ok().body(response);
     }
 
+    //내정보 조회
+    @GetMapping("/person")
+    public ResponseEntity<GetUserResponse> getUserInfo(@AuthenticationPrincipal UserEntity userEntity) {
+        GetUserResponse response = userService.getUserInfo(userEntity);
+        return ResponseEntity.ok().body(response);
+    }
+
+    //회원 기간 조회
+    @GetMapping("/period")
+    public ResponseEntity<GetUserPeriodResponse> getUserPeriod(@AuthenticationPrincipal UserEntity userEntity) {
+        GetUserPeriodResponse response = userService.getUserPeriod(userEntity);
+        return ResponseEntity.ok().body(response);
+    }
+
     // 회원 정보중 연장으로 인한 기간 수정
     @PutMapping("/{userId}")
     public ResponseEntity<UpdateUserResponse> updateUserPeriod(@PathVariable Long userId, @RequestBody UpdateUserRequest request) {

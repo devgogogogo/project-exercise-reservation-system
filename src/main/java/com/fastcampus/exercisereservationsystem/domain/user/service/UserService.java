@@ -6,10 +6,7 @@ import com.fastcampus.exercisereservationsystem.config.JwtToken;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.request.CreateUserRequest;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.request.LoginUserRequest;
 import com.fastcampus.exercisereservationsystem.domain.user.dto.request.UpdateUserRequest;
-import com.fastcampus.exercisereservationsystem.domain.user.dto.response.CreateUserResponse;
-import com.fastcampus.exercisereservationsystem.domain.user.dto.response.GetUserResponse;
-import com.fastcampus.exercisereservationsystem.domain.user.dto.response.LoginUserResponse;
-import com.fastcampus.exercisereservationsystem.domain.user.dto.response.UpdateUserResponse;
+import com.fastcampus.exercisereservationsystem.domain.user.dto.response.*;
 import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
 import com.fastcampus.exercisereservationsystem.domain.user.exception.UserErrorCode;
 import com.fastcampus.exercisereservationsystem.domain.user.repository.UserRepository;
@@ -23,14 +20,20 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @RequiredArgsConstructor
 @Service
 public class UserService {
 
+    private final Clock clock = Clock.system(ZoneId.of("Asia/Seoul"));
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UserRepository userRepository;
@@ -104,15 +107,63 @@ public class UserService {
         return GetUserResponse.from(userEntity);
     }
 
+    //내정보 조회
+    public GetUserResponse getUserInfo(UserEntity userEntity) {
+
+        return GetUserResponse.from(userEntity);
+    }
+    //회원 기간 조회
+    @Transactional(readOnly = true)
+    public GetUserPeriodResponse getUserPeriod(UserEntity userEntity) {
+
+        LocalDate end = userEntity.getEndAt();
+        LocalDate start = userEntity.getStartAt();
+
+        if (end == null) {
+            // 만료일 정보가 없으면 0으로 간주 (정책에 따라 null 반환도 가능)
+            return GetUserPeriodResponse.from(0L);
+        }
+        // 잘못된 데이터 방지 (end < start)
+        if (start != null && end.isBefore(start)) {
+            return GetUserPeriodResponse.from(0L);
+        }
+
+        /**
+         * // 예시 --> ChronoUnit.DAYS.between(10월 29일, 10월 30일) // 결과: 1 그래서 +1을 해준다.
+         * 👉 이건 “29일부터 30일까지 1일 간격”이라는 뜻이에요.
+         * 즉, 오늘(29일)을 포함하지 않습니다.
+         *
+         * 그래서 +1을 해줘야 실제 “남은 일수”가 오늘 포함 2일 남음(D-2) 으로 계산돼요.
+         */
+        LocalDate today = LocalDate.now(clock);
+        long remaining;
+        //“왼쪽 날짜가 오른쪽 날짜 보다 이후면 기간끝이므로 0
+        if (today.isAfter(end)) {
+            remaining = 0L;
+        } else if (start != null && end.isBefore(today)) {
+            // 아직 시작 전 → 전체 이용 가능 일수(시작~만료, 양끝 포함)
+            remaining = ChronoUnit.DAYS.between(start, end) + 1;
+        } else {
+            // 진행 중 → 오늘 포함 남은 일수(오늘~만료, 양끝 포함)
+            remaining = ChronoUnit.DAYS.between(today, end) + 1;
+        }
+        if (remaining < 0) {
+            // 최종 안전장치
+            remaining = 0;
+        }
+
+        return GetUserPeriodResponse.from(remaining);
+    }
     //회원 기간 수정
+
     public UpdateUserResponse updateUserPeriod(Long userId, UpdateUserRequest request) {
         UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new BizException(UserErrorCode.USER_NOT_FOUND));
         userEntity.updatePeriod(request.startAt(), request.endAt());
         userRepository.save(userEntity);
         return UpdateUserResponse.from(userEntity);
     }
-
     //회원 삭제 (추후에 소프르 delete로 바꿀예정)
+
     public void deleteUser(String username) {
         UserEntity userEntity = userRepository.findByUsername(username).orElseThrow(() -> new BizException(UserErrorCode.USER_NOT_FOUND));
         userRepository.delete(userEntity);

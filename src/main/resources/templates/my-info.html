@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>내 정보</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900">
+<header class="sticky top-0 z-20 bg-white/80 backdrop-blur border-b border-slate-200">
+    <div class="max-w-3xl mx-auto px-6 py-3 flex items-center justify-between">
+        <a href="/" class="text-sm px-3 py-1.5 rounded-xl border bg-white hover:bg-slate-100">← 홈</a>
+        <span class="text-sm text-slate-500">내 정보</span>
+    </div>
+</header>
+
+<main class="max-w-3xl mx-auto px-6 py-8">
+    <section class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
+        <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 to-emerald-400 ring-1 ring-slate-900/10"></div>
+            <div class="flex-1">
+                <h1 id="who" class="text-2xl font-extrabold tracking-tight">로딩 중…</h1>
+                <p id="range" class="mt-1 text-slate-600 tabular-nums">-</p>
+            </div>
+            <div class="text-right">
+                <div id="dday" class="text-xl font-bold text-sky-600 tabular-nums">D-</div>
+                <div id="left" class="text-xs text-slate-500 mt-0.5">남은기간</div>
+            </div>
+        </div>
+
+        <dl class="mt-6 grid grid-cols-2 gap-4 text-sm">
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                <dt class="text-slate-500">이름</dt>
+                <dd id="name" class="mt-1 font-semibold text-slate-800">-</dd>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                <dt class="text-slate-500">아이디</dt>
+                <dd id="username" class="mt-1 font-semibold text-slate-800">-</dd>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 col-span-2">
+                <dt class="text-slate-500">기간</dt>
+                <dd id="period" class="mt-1 font-semibold text-slate-800 tabular-nums">-</dd>
+            </div>
+        </dl>
+
+        <div id="msg" class="hidden mt-4 text-sm"></div>
+
+        <div class="mt-6 flex justify-end gap-2">
+            <button id="refresh" class="px-4 py-2 rounded-xl border bg-white hover:bg-slate-50">새로고침</button>
+            <a href="/reservation" class="px-4 py-2 rounded-xl bg-sky-600 text-white hover:bg-sky-700">예약하러 가기</a>
+        </div>
+    </section>
+</main>
+
+<script>
+    const pad = n => String(n).padStart(2,'0');
+
+    function fmtDateDot(v){
+        if(!v) return '';
+        if(typeof v === 'string'){
+            const d = new Date(v);
+            if(!isNaN(d.getTime())) return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}`;
+            const m = v.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if(m) return `${m[1]}.${m[2]}.${m[3]}`;
+            return v;
+        }
+        if(typeof v === 'object'){
+            const y = v.year ?? v.y; const M = v.monthValue ?? v.month; const d = v.dayOfMonth ?? v.day;
+            if(y && M && d) return `${y}.${pad(M)}.${pad(d)}`;
+        }
+        return '';
+    }
+
+    function pick(obj, keys){
+        for(const k of keys){
+            if(obj && obj[k] != null) return obj[k];
+        }
+        return null;
+    }
+
+    function authHeaders(){
+        const h = {'Accept':'application/json'};
+        const t = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+        if(t) h['Authorization'] = `Bearer ${t}`;
+        return h;
+    }
+
+    async function load(){
+        const msg = document.getElementById('msg');
+        msg.classList.add('hidden'); msg.textContent = '';
+
+        try{
+            const [pRes, rRes] = await Promise.all([
+                fetch('/api/users/person', {headers: authHeaders(), credentials:'include'}),
+                fetch('/api/users/period', {headers: authHeaders(), credentials:'include'})
+            ]);
+
+            if(pRes.status === 401 || rRes.status === 401){ location.href = '/login'; return; }
+            if(!pRes.ok) throw new Error('내 정보 조회 실패');
+            if(!rRes.ok) throw new Error('기간 조회 실패');
+
+            const profile = await pRes.json();
+            const period  = await rRes.json();
+
+            const nickname = pick(profile, ['nickname','name','username']) || '-';
+            const name     = pick(profile, ['name','nickname','username']) || '-';
+            const username = pick(profile, ['username']) || '-';
+
+            const start = pick(profile, ['startedAt','startAt','start_at','start']);
+            const end   = pick(profile, ['endedAt','endAt','end_at','end']);
+            const startStr = fmtDateDot(start);
+            const endStr   = fmtDateDot(end);
+
+            const remaining = Number(pick(period, ['remainingPeriod','remaining','days'])) || 0;
+            const dtext = remaining <= 0 ? 'D-0' : `D-${remaining}`;
+
+            document.getElementById('who').textContent = nickname;
+            document.getElementById('name').textContent = name;
+            document.getElementById('username').textContent = username;
+            document.getElementById('period').textContent = startStr && endStr ? `${startStr} ~ ${endStr}` : '-';
+            document.getElementById('range').textContent  = startStr && endStr ? `${startStr} ~ ${endStr} (${dtext})` : dtext;
+            document.getElementById('dday').textContent = dtext;
+            document.getElementById('left').textContent = `남은기간${remaining<=0?'(만료)': ''}`;
+        }catch(e){
+            msg.textContent = e.message || '오류가 발생했습니다.';
+            msg.className = 'mt-4 text-sm text-red-600';
+        }
+    }
+
+    document.getElementById('refresh').addEventListener('click', load);
+    load();
+</script>
+</body>
+</html>

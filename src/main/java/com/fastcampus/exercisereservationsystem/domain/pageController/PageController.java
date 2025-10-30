@@ -103,9 +103,9 @@ public class PageController {
 
     //<--------------------------내 정보--------------------------------------------->
     //내 정보
-    @GetMapping("/my")
+    @GetMapping("/my-info")
     public String myPage() {
-        return "my";
+        return "my-info";
     }
 
     /**
