@@ -33,30 +33,44 @@ jobs:
           --health-interval=10s --health-timeout=5s --health-retries=10
           --health-start-period=5s
 
-    steps:
-      - uses: actions/checkout@v4
+    # Gradle 실행 시 Spring이 읽는 환경변수 (CI 임시 컨테이너용 값이라 하드코딩 OK)
+    env:
+      SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/exercise_reservation
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root1234
+      SPRING_DATA_REDIS_HOST: 127.0.0.1
+      SPRING_DATA_REDIS_PORT: 6379
+      JWT_KEY: test-ci-jwt-key-please-override-in-prod
 
-      - uses: actions/setup-java@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
 
       - name: Install netcat (for waiting ports)
         run: sudo apt-get update && sudo apt-get install -y netcat-openbsd
 
       - name: Wait for MySQL & Redis to be ready
+        shell: bash
         run: |
-          echo "Waiting for MySQL (port 3306)..."
+          echo "Waiting for MySQL (3306)..."
           for i in {1..30}; do
             nc -z 127.0.0.1 3306 && echo "MySQL is up!" && break
-            echo "Still waiting for MySQL..."
-            sleep 3
+            echo "Still waiting for MySQL... ($i/30)"; sleep 3
           done
-          echo "Waiting for Redis (port 6379)..."
+          echo "Waiting for Redis (6379)..."
           for i in {1..30}; do
             nc -z 127.0.0.1 6379 && echo "Redis is up!" && break
-            echo "Still waiting for Redis..."
-            sleep 2
+            echo "Still waiting for Redis... ($i/30)"; sleep 2
           done
 
       - name: Build & Test
