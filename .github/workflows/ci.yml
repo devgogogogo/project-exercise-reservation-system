@@ -1,14 +1,16 @@
-name: CI (Build & Test)
+name: CI (Build, Test, and Push Docker Image)
 
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     services:
       mysql:
@@ -22,7 +24,7 @@ jobs:
         options: >-
           --health-cmd="mysqladmin ping -h 127.0.0.1 -proot1234"
           --health-interval=10s --health-timeout=5s --health-retries=10
-          --health-start-period=15s
+          --health-start-period=20s
 
       redis:
         image: redis:7
@@ -31,9 +33,8 @@ jobs:
         options: >-
           --health-cmd="redis-cli ping"
           --health-interval=10s --health-timeout=5s --health-retries=10
-          --health-start-period=5s
+          --health-start-period=10s
 
-    # Gradle 실행 시 Spring이 읽는 환경변수 (CI 임시 컨테이너용 값이라 하드코딩 OK)
     env:
       SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/exercise_reservation
       SPRING_DATASOURCE_USERNAME: root
@@ -51,7 +52,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-          cache: 'gradle'
+          cache: gradle
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -63,15 +64,39 @@ jobs:
         shell: bash
         run: |
           echo "Waiting for MySQL (3306)..."
-          for i in {1..30}; do
+          for i in {1..40}; do
             nc -z 127.0.0.1 3306 && echo "MySQL is up!" && break
-            echo "Still waiting for MySQL... ($i/30)"; sleep 3
+            echo "Still waiting for MySQL... ($i/40)"; sleep 3
           done
           echo "Waiting for Redis (6379)..."
-          for i in {1..30}; do
+          for i in {1..40}; do
             nc -z 127.0.0.1 6379 && echo "Redis is up!" && break
-            echo "Still waiting for Redis... ($i/30)"; sleep 2
+            echo "Still waiting for Redis... ($i/40)"; sleep 2
           done
 
       - name: Build & Test
         run: ./gradlew clean build --no-daemon
+
+      - name: Upload JAR artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-libs
+          path: build/libs/*.jar
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USER }}
+          password: ${{ secrets.GHCR_PAT }}
+
+      - name: Build and Push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/exercise-reservation:main
+            ghcr.io/${{ github.repository_owner }}/exercise-reservation:${{ github.sha }}
