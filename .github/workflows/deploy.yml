@@ -10,23 +10,51 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 🔹 SSH 키를 파일로 저장 (줄바꿈 문제 방지)
+      # 🔹 1️⃣ SSH 키를 파일로 저장 (줄바꿈 문제 방지)
       - name: Write SSH key to file
         run: |
           echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
           chmod 600 key.pem
 
-      # 🔹 (옵션) GHCR이 private이면 로그인 필요 — public이면 이 블록은 생략해도 됨
+      # 🔹 2️⃣ (옵션) GHCR이 private이면 로그인 — public이면 생략해도 됨
       # - name: Login to GHCR (optional)
       #   run: echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ secrets.GHCR_USER }}" --password-stdin
 
-      # 🔹 EC2 접속해서 자동 배포 실행
+      # 🔹 3️⃣ 레포의 docker-compose.yml 파일을 EC2로 업로드
+      - name: Upload docker-compose.yml to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.yml"
+          target: "~/app"
+
+      # 🔹 4️⃣ GitHub Secrets 값으로 .env 파일을 EC2에 작성
+      - name: Write .env on EC2
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -eux
+            cat > ~/app/.env << 'EOF'
+            SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}
+            SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}
+            SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+            SPRING_DATA_REDIS_HOST=${{ secrets.SPRING_DATA_REDIS_HOST }}
+            SPRING_DATA_REDIS_PORT=${{ secrets.SPRING_DATA_REDIS_PORT }}
+            JWT_KEY=${{ secrets.JWT_KEY }}
+            EOF
+
+      # 🔹 5️⃣ EC2에서 최신 이미지 pull & up -d (실제 배포)
       - name: Connect and Deploy to EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}     # ubuntu
-          key_path: key.pem                     # ✅ key 대신 key_path 사용
+          username: ${{ secrets.EC2_USER }}
+          key_path: key.pem
           port: 22
           script: |
             set -eux
