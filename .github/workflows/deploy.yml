@@ -10,33 +10,45 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 🔹 1️⃣ SSH 키를 파일로 저장 (줄바꿈 문제 방지)
+      # 0) 레포 파일 체크아웃 (필수!)
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 1) SSH 키 파일 저장
       - name: Write SSH key to file
         run: |
           echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
           chmod 600 key.pem
 
-      # 🔹 2️⃣ (옵션) GHCR이 private이면 로그인 — public이면 생략해도 됨
-      # - name: Login to GHCR (optional)
-      #   run: echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ secrets.GHCR_USER }}" --password-stdin
+      # 2) 원격 경로 준비 (~/app 없으면 생성)
+      - name: Ensure remote deploy directory
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key_path: key.pem
+          script: |
+            set -eux
+            mkdir -p ~/app
 
-      # 🔹 3️⃣ 레포의 docker-compose.yml 파일을 EC2로 업로드
+      # 3) docker-compose.yml 업로드
       - name: Upload docker-compose.yml to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          key_path: key.pem
           source: "docker-compose.yml"
           target: "~/app"
+          overwrite: true
 
-      # 🔹 4️⃣ GitHub Secrets 값으로 .env 파일을 EC2에 작성
+      # 4) Secrets로 .env 작성
       - name: Write .env on EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          key_path: key.pem
           script: |
             set -eux
             cat > ~/app/.env << 'EOF'
@@ -45,10 +57,15 @@ jobs:
             SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
             SPRING_DATA_REDIS_HOST=${{ secrets.SPRING_DATA_REDIS_HOST }}
             SPRING_DATA_REDIS_PORT=${{ secrets.SPRING_DATA_REDIS_PORT }}
+            SPRING_DATA_REDIS_PASSWORD=${{ secrets.SPRING_DATA_REDIS_PASSWORD }}
             JWT_KEY=${{ secrets.JWT_KEY }}
             EOF
 
-      # 🔹 5️⃣ EC2에서 최신 이미지 pull & up -d (실제 배포)
+      # 5) (옵션) GHCR private이면 로그인
+      # - name: Login to GHCR (optional for private images)
+      #   run: echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ secrets.GHCR_USER }}" --password-stdin
+
+      # 6) 배포 실행
       - name: Connect and Deploy to EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -56,6 +73,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key_path: key.pem
           port: 22
+          envs: JWT_KEY=${{ secrets.JWT_KEY }}  # 👈 추가된 부분
           script: |
             set -eux
             cd ~/app
