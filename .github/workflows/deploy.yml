@@ -37,7 +37,7 @@ jobs:
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
-          key_path: key.pem
+          key_path: ${{ secrets.EC2_SSH_KEY }}
           source: "docker-compose.yml"
           target: "~/app"
           overwrite: true
