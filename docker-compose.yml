@@ -1,73 +1,55 @@
-# docker-compose.yml
-services:
-  # ✅ Spring Boot Application
-  app:
-    build: .                         # ← 이 폴더에 Dockerfile이 있어야 함
-    container_name: spring-app
-    ports:
-      - "8080:8080"                  # 컨테이너 → 로컬 접근 가능
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+version: "3.9"
 
-    environment:
-      SPRING_DATASOURCE_URL: ${MYSQL_URL}
-      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
-      SPRING_DATA_REDIS_HOST: ${REDIS_HOST}
-      SPRING_DATA_REDIS_PORT: ${REDIS_PORT}
-      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
-    restart: always
+services:
   mysql:
     image: mysql:8.0
     container_name: mysql-exercise
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
-      - "3309:3306"
-    command: >
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-      --default-authentication-plugin=mysql_native_password
+      - "3309:3306"                   # 필요 시 조정
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "sh", "-c", "mysqladmin ping -h 127.0.0.1 -u root -p$${MYSQL_ROOT_PASSWORD}"] #10초마다 mysqladmin ping 명령을 실행해서 응답을 확인
-      interval: 10s  # 10초 간격으로 검사
-      timeout: 5s   # 5초 안에 응답 없으면 실패로 간주
-      retries: 10   # 10번연속 실패 하면 unhealthy
-      start_period: 15s #처음 컨테이너가 시작되고 15초 동안은 검사 유예
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   redis:
     image: redis:7-alpine
     container_name: redis-exercise
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
     ports:
       - "6379:6379"
-    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
     volumes:
       - redis_data:/data
     healthcheck:
-      test:  ["CMD", "sh", "-c", "redis-cli -a \"$REDIS_PASSWORD\" ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 5s
 
-  # ✅ k6 성능 테스트용 추가
-  k6:
-    image: grafana/k6:latest
-    container_name: k6-test
-    volumes:
-      - ./k6:/scripts              # test.js 파일이 들어있는 폴더
-    entrypoint: [ "tail", "-f", "/dev/null" ]  # 기본은 대기 모드로 실행
+  app:
+    image: ghcr.io/devgogogogo/exercise-reservation:main   # ← CI에서 푸시한 태그와 동일
+    container_name: spring-app
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_DATA_REDIS_HOST: ${SPRING_DATA_REDIS_HOST}
+      SPRING_DATA_REDIS_PORT: ${SPRING_DATA_REDIS_PORT}
+      SPRING_DATA_REDIS_PASSWORD: ${SPRING_DATA_REDIS_PASSWORD}
+      JWT_KEY: ${JWT_KEY}
+    ports:
+      - "8080:8080"
+
 volumes:
   mysql_data:
   redis_data:
