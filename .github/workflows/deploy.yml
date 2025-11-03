@@ -31,16 +31,18 @@ jobs:
             set -eux
             mkdir -p ~/app
 
-      # 3) docker-compose.yml 업로드
-      - name: Upload docker-compose.yml to EC2
+      # 3) 프로젝트 전체 업로드 (Dockerfile + 소스 포함)
+      - name: Upload project to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "docker-compose.yml"
+          source: |
+            .
           target: "~/app"
           overwrite: true
+          rm: true
 
       # 4) Secrets로 .env 작성
       - name: Write .env on EC2
@@ -59,7 +61,7 @@ jobs:
             SPRING_DATA_REDIS_PORT=${{ secrets.SPRING_DATA_REDIS_PORT }}
             SPRING_DATA_REDIS_PASSWORD=${{ secrets.SPRING_DATA_REDIS_PASSWORD }}
             JWT_KEY=${{ secrets.JWT_KEY }}
-            
+
             MYSQL_URL=${{ secrets.SPRING_DATASOURCE_URL }}
             MYSQL_USER=${{ secrets.SPRING_DATASOURCE_USERNAME }}
             MYSQL_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
@@ -70,11 +72,7 @@ jobs:
             REDIS_PASSWORD=${{ secrets.SPRING_DATA_REDIS_PASSWORD }}
             EOF
 
-      # 5) (옵션) GHCR private이면 로그인
-      # - name: Login to GHCR (optional for private images)
-      #   run: echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ secrets.GHCR_USER }}" --password-stdin
-
-      # 6) 배포 실행
+      # 5) 배포 실행 (빌드 + 실행)
       - name: Connect and Deploy to EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -82,13 +80,12 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
-          envs: JWT_KEY=${{ secrets.JWT_KEY }}  # 👈 추가된 부분
           script: |
             set -eux
             cd ~/app
-            echo "[1/3] Pulling latest image..."
-            docker compose pull
-            echo "[2/3] Rebuilding and restarting containers..."
-            docker compose up -d
+            echo "[1/3] Pulling dependencies (if any)..."
+            docker compose pull || true
+            echo "[2/3] Building and starting containers..."
+            docker compose up -d --build
             echo "[3/3] Checking container status..."
             docker compose ps
