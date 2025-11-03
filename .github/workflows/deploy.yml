@@ -10,21 +10,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 🔹 SSH 키를 파일로 저장 (줄바꿈 문제 방지)
+      - name: Write SSH key to file
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
+          chmod 600 key.pem
+
+      # 🔹 (옵션) GHCR이 private이면 로그인 필요 — public이면 이 블록은 생략해도 됨
+      # - name: Login to GHCR (optional)
+      #   run: echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ secrets.GHCR_USER }}" --password-stdin
+
+      # 🔹 EC2 접속해서 자동 배포 실행
       - name: Connect and Deploy to EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          username: ${{ secrets.EC2_USER }}     # ubuntu
+          key_path: key.pem                     # ✅ key 대신 key_path 사용
+          port: 22
           script: |
             set -eux
             cd ~/app
-
             echo "[1/3] Pulling latest image..."
             docker compose pull
-
             echo "[2/3] Rebuilding and restarting containers..."
             docker compose up -d
-
             echo "[3/3] Checking container status..."
             docker compose ps
