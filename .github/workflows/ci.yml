@@ -2,14 +2,24 @@ name: CI (Build, Test, and Push Docker Image)
 
 on:
   push:
-    branches: [ "main" ] #→ main 브랜치에 코드를 push 할 때마다 자동 실행
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
 
+# GHCR에 이미지 푸시하려면 최소 이 권한이 필요
+permissions:
+  contents: read
+  packages: write
+
+# 같은 브랜치에서 중복 실행되면 이전 워크플로우 취소
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
-    runs-on: ubuntu-latest #GitHub이 제공하는 가상 리눅스 서버(ubuntu-latest) 위에서 실행돼요.   그 안에 Java, Gradle, MySQL, Redis 등을 자동으로 설치합니다.
+    runs-on: ubuntu-latest
     timeout-minutes: 20
 
     services:
@@ -84,6 +94,10 @@ jobs:
           name: build-libs
           path: build/libs/*.jar
 
+      # Docker Buildx 활성화 + 캐시
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -91,13 +105,14 @@ jobs:
           username: ${{ secrets.GHCR_USER }}
           password: ${{ secrets.GHCR_PAT }}
 
-      - name: Build and Push Docker image #CI는 이제 Dockerfile을 읽어서 “실행 가능한 도커 이미지” 를 자동으로 만들어줘요.
+      - name: Build and Push Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/exercise-reservation:main     
+            ghcr.io/${{ github.repository_owner }}/exercise-reservation:main
             ghcr.io/${{ github.repository_owner }}/exercise-reservation:${{ github.sha }}
-# 완성된 Docker 이미지를 GitHub의 GHCR(GitHub Container Registry) 에 업로드
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
