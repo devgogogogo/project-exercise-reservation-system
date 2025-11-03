@@ -17,3 +17,6 @@ EXPOSE 8080
 #위에서 빌드한 jar 파일(build/libs/*.jar)을 이 실행용 이미지로 복사.
 COPY --from=build /app/build/libs/*.jar app.jar
 ENTRYPOINT ["java","-jar","/app/app.jar"]
+
+#Dockerfile은 한마디로 “내 애플리케이션을 어떻게 실행 가능한 이미지로 포장할지”
+ #정의한 설계도입니다.
