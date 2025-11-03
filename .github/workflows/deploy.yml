@@ -59,6 +59,15 @@ jobs:
             SPRING_DATA_REDIS_PORT=${{ secrets.SPRING_DATA_REDIS_PORT }}
             SPRING_DATA_REDIS_PASSWORD=${{ secrets.SPRING_DATA_REDIS_PASSWORD }}
             JWT_KEY=${{ secrets.JWT_KEY }}
+            
+            MYSQL_URL=${{ secrets.SPRING_DATASOURCE_URL }}
+            MYSQL_USER=${{ secrets.SPRING_DATASOURCE_USERNAME }}
+            MYSQL_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+            MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
+            MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
+            REDIS_HOST=${{ secrets.SPRING_DATA_REDIS_HOST }}
+            REDIS_PORT=${{ secrets.SPRING_DATA_REDIS_PORT }}
+            REDIS_PASSWORD=${{ secrets.SPRING_DATA_REDIS_PASSWORD }}
             EOF
 
       # 5) (옵션) GHCR private이면 로그인
