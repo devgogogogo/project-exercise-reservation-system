@@ -12,7 +12,7 @@ import java.time.LocalDate;
 
 @Configuration
 public class DevDataConfig {
-
+//
     @Bean
     CommandLineRunner seedAdmin(UserRepository users, PasswordEncoder encoder) {
         return args -> {
