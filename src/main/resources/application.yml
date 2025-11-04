@@ -19,7 +19,7 @@ spring:
     redis:
       host: ${SPRING_DATA_REDIS_HOST}
       port: ${SPRING_DATA_REDIS_PORT}
-      password: ${SPRING_DATA_REDIS_PASSWORD:}
+      password: ${SPRING_DATA_REDIS_PASSWORD}
 
 #  최소 32바이트(256비트) 이상의 랜덤 바이트를 Base64로 인코딩해 넣어라(아래는 샘플)
 jwt:

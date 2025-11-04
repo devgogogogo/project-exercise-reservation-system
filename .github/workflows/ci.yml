@@ -46,12 +46,12 @@ jobs:
           --health-start-period=10s
 
     env:
-      SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/exercise_reservation
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root1234
-      SPRING_DATA_REDIS_HOST: 127.0.0.1
-      SPRING_DATA_REDIS_PORT: 6379
-      JWT_KEY: test-ci-jwt-key-please-override-in-prod
+      SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
+      SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
+      SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+      SPRING_DATA_REDIS_HOST: ${{ secrets.REDIS_HOST }}
+      SPRING_DATA_REDIS_PORT: ${{ secrets.REDIS_PORT }}
+      JWT_KEY: ${{ secrets.JWT_KEY }}
 
     steps:
       - name: Checkout
