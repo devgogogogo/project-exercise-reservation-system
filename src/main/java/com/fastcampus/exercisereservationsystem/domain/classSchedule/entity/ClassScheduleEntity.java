@@ -68,4 +68,3 @@ public class ClassScheduleEntity extends BaseEntity {
         this.capacity = capacity;
     }
 }
-//

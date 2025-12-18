@@ -7,15 +7,12 @@ import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.respons
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.response.GetClassScheduleResponse;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.dto.response.UpdateClassScheduleResponse;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.entity.ClassScheduleEntity;
-import com.fastcampus.exercisereservationsystem.domain.classSchedule.enums.ScheduleStatus;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.exception.ClassScheduleErrorCode;
 import com.fastcampus.exercisereservationsystem.domain.classSchedule.repository.ClassScheduleRepository;
 import com.fastcampus.exercisereservationsystem.domain.user.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
